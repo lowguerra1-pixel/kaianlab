@@ -38,6 +38,7 @@ let state = { ofertas: [], levas: [], criativos: [] };
 let view = "ofertas";
 let filters = { ofertas:"", levas:"", criativos:"", vencedores:"" };
 let levaOferta = "", criOferta = "";
+let ofertaAberta = "";
 let drawerCtx = null;
 let papel = null;
 let sessao = null;
@@ -83,6 +84,49 @@ function roas(o){
   const f = Number(o.faturamento), i = Number(o.investido);
   return (isFinite(f) && isFinite(i) && i > 0) ? f/i : null;
 }
+// --- cadência da Fase 2 -------------------------------------------------
+// Regra: leva entregue no dia X roda e é lida em X+2. No dia X+2 a próxima
+// leva já precisa estar sendo escrita. Passou disso, está atrasado.
+function hojeIso(){
+  const d = new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+function diffDias(isoA, isoB){
+  const pa = String(isoA).slice(0,10).split("-").map(Number);
+  const pb = String(isoB).slice(0,10).split("-").map(Number);
+  if(pa.length !== 3 || pb.length !== 3 || pa.some(isNaN) || pb.some(isNaN)) return null;
+  return Math.round((Date.UTC(pb[0],pb[1]-1,pb[2]) - Date.UTC(pa[0],pa[1]-1,pa[2])) / 86400000);
+}
+function ultimaEntrega(oid){
+  const ds = levasDe(oid).map(l => String(l.dataEntrega||"").slice(0,10)).filter(Boolean).sort();
+  return ds.length ? ds[ds.length-1] : null;
+}
+function diasSemLeva(oid){
+  const u = ultimaEntrega(oid);
+  return u ? diffDias(u, hojeIso()) : null;
+}
+function alarme(oid){
+  const d = diasSemLeva(oid);
+  if(d === null)
+    return { dias:null, rot:"SEM LEVA", tom:"bad", urgente:true, peso:99,
+             nota:"Nenhuma leva entregue ainda nesta oferta." };
+  if(d < 0)
+    return { dias:d, rot:"AGENDADA", tom:"info", urgente:false, peso:-1,
+             nota:"A próxima entrega está marcada pra frente." };
+  if(d <= 1)
+    return { dias:d, rot:"EM DIA", tom:"ok", urgente:false, peso:d,
+             nota:`A leva atual ainda está em teste. Próxima em ${2-d} dia${2-d===1?"":"s"}.` };
+  if(d === 2)
+    return { dias:d, rot:"ESCREVER HOJE", tom:"warn", urgente:true, peso:d,
+             nota:"O teste da última leva fecha hoje. A próxima leva começa agora." };
+  return { dias:d, rot:`ATRASADO ${d-2}d`, tom:"bad", urgente:true, peso:d,
+           nota:`A leva nova deveria ter saído há ${d-2} dia${d-2===1?"":"s"}.` };
+}
+function ofertasFase2(){
+  return state.ofertas.filter(o => Number(o.fase||1) === 2 || o.veredito === "APROVADO → FASE 2");
+}
+function urgentes(){ return ofertasFase2().filter(o => alarme(o.id).urgente); }
+
 const levasDe = oid => state.levas.filter(l => l.ofertaId === oid);
 const crisDe  = lid => state.criativos.filter(c => c.levaId === lid);
 
@@ -162,19 +206,27 @@ function paintSave(){
 // ---------------------------------------------------------------------
 function render(){
   const counts = {
-    ofertas: state.ofertas.length, levas: state.levas.length,
-    criativos: state.criativos.length,
+    ofertas: state.ofertas.filter(o => Number(o.fase||1) === 1).length,
+    fase2: ofertasFase2().length,
     vencedores: state.criativos.filter(c => c.veredito === "VALIDADO").length
   };
-  const tabs = [["ofertas","Fase 1 · Ofertas"],["levas","Fase 2 · Levas"],["criativos","Criativos"],
-                ["vencedores","Vencedores"],["guia","Guia"]];
-  const nav = tabs.map(t =>
-    `<button class="tab" role="tab" aria-selected="${view===t[0]}" data-view="${t[0]}">${t[1]}` +
-    (counts[t[0]] != null ? `<span class="cnt">${counts[t[0]]}</span>` : "") + `</button>`).join("");
+  const tabs = [["ofertas","Fase 1"],["fase2","Fase 2"],["vencedores","Vencedores"],["guia","Guia"]];
+  const naOficina = view === "oficina";
+  const nav = tabs.map(t => {
+    const ativa = view===t[0] || (naOficina && t[0]==="fase2");
+    return `<button class="tab" role="tab" aria-selected="${ativa}" data-view="${t[0]}">${t[1]}` +
+      (counts[t[0]] != null ? `<span class="cnt">${counts[t[0]]}</span>` : "") + `</button>`;
+  }).join("");
+
+  const nUrg = urgentes().length;
+  const sino = nUrg
+    ? `<button class="sino" data-view="fase2" title="Ofertas pedindo leva nova">
+         ${nUrg} pedindo leva</button>`
+    : "";
 
   const body = view==="ofertas" ? viewOfertas()
-             : view==="levas" ? viewLevas()
-             : view==="criativos" ? criativoTable(false)
+             : view==="fase2" ? viewFase2()
+             : view==="oficina" ? viewOficina()
              : view==="vencedores" ? criativoTable(true)
              : viewGuia();
 
@@ -186,6 +238,7 @@ function render(){
     `<header class="top">
        <div class="brand"><b>KAIAN LAB</b><span>Esteira</span></div>
        <nav role="tablist">${nav}</nav>
+       ${sino}
        <div class="saveState" id="saveState"></div>
        <button class="btn ghost sm" data-act="sair" title="${h(sessao?.user?.email||"")}">Sair</button>
      </header>
@@ -256,66 +309,155 @@ function viewOfertas(){
 // ---------------------------------------------------------------------
 // Fase 2 — levas
 // ---------------------------------------------------------------------
-function viewLevas(){
-  const q = filters.levas.toLowerCase();
-  const rows = state.levas.filter(l => {
-    if (levaOferta && l.ofertaId !== levaOferta) return false;
-    return !q || `${l.id} ${l.angulo}`.toLowerCase().includes(q);
-  }).sort((a,b) => String(b.dataEntrega||"").localeCompare(String(a.dataEntrega||"")));
+function viewFase2(){
+  const lista = ofertasFase2().slice().sort((a,b) => alarme(b.id).peso - alarme(a.id).peso);
 
-  const f2 = state.ofertas.filter(o => Number(o.fase||1)===2 || o.veredito==="APROVADO → FASE 2");
+  if(!lista.length) return emptyState(
+    "Nenhuma oferta em Fase 2.",
+    "Marque o veredito de uma oferta como APROVADO → FASE 2 na aba Fase 1.");
 
-  const tb = rows.map(l => {
-    const o = byId(state.ofertas, l.ofertaId);
-    const cris = crisDe(l.id);
+  const cards = lista.map(o => {
+    const a = alarme(o.id);
+    const ls = levasDe(o.id);
+    const ultima = ls.slice().sort((x,y) =>
+      String(y.dataEntrega||"").localeCompare(String(x.dataEntrega||"")))[0];
+    const cris = ls.flatMap(l => crisDe(l.id));
     const val = cris.filter(c => c.veredito === "VALIDADO").length;
+    return `<button class="ocard t-${a.tom}" data-oficina="${h(o.id)}">
+      <div class="ocard-top">
+        <span class="ocard-nome">${h(o.nome||"Sem nome")}</span>
+        <span class="ocard-id">${h(o.id)}</span>
+      </div>
+      <div class="ocard-alarme">
+        <span class="ocard-dias">${a.dias === null ? "—" : Math.max(0,a.dias)}</span>
+        <span class="ocard-lado">
+          <span class="pill p-${a.tom}">${h(a.rot)}</span>
+          <small>${a.dias === null ? "sem leva entregue" : `dia${Math.abs(a.dias)===1?"":"s"} desde a última leva`}</small>
+        </span>
+      </div>
+      <div class="ocard-nota">${h(a.nota)}</div>
+      <div class="ocard-pe">
+        <span>${ls.length} leva${ls.length===1?"":"s"}</span>
+        <span>${cris.length} criativo${cris.length===1?"":"s"}</span>
+        <span class="forte">${val} validado${val===1?"":"s"}</span>
+        <span class="sp"></span>
+        <span>${ultima && ultima.dataEntrega ? "última " + br(ultima.dataEntrega) : "—"}</span>
+      </div>
+    </button>`;
+  }).join("");
+
+  const nUrg = urgentes().length;
+  const topo = nUrg
+    ? `<div class="banner alerta"><b>${nUrg} oferta${nUrg===1?"":"s"} pedindo leva nova agora.</b>
+       Estão no topo da lista, em vermelho ou âmbar.</div>`
+    : `<div class="banner calmo">Todas as ofertas da Fase 2 estão em dia. Nenhuma leva atrasada.</div>`;
+
+  return `${topo}
+    <div class="toolbar"><h2>Fase 2 — uma oficina por oferta</h2><div class="sp"></div>
+      <span class="legenda">
+        ${pill("EM DIA")} até 1 dia · ${pill("EM REVISÃO").replace("EM REVISÃO","ESCREVER HOJE")} 2 dias ·
+        ${pill("MORTA").replace("MORTA","ATRASADO")} 3 dias ou mais
+      </span></div>
+    <div class="ocards">${cards}</div>`;
+}
+
+// ---------------------------------------------------------------------
+// Oficina de uma oferta — o ambiente de análise de criativos dela
+// ---------------------------------------------------------------------
+function viewOficina(){
+  const o = byId(state.ofertas, ofertaAberta);
+  if(!o){ view = "fase2"; return viewFase2(); }
+
+  const a = alarme(o.id);
+  const ls = levasDe(o.id).slice().sort((x,y) =>
+    String(y.dataEntrega||"").localeCompare(String(x.dataEntrega||"")));
+  const cris = ls.flatMap(l => crisDe(l.id));
+  const val = cris.filter(c => c.veredito === "VALIDADO").length;
+  const pot = cris.filter(c => c.veredito === "POTENCIAL").length;
+  const gasto = cris.reduce((t,c) => t + (Number(c.gasto)||0), 0);
+
+  const cabecalho = `
+    <div class="oficina-topo">
+      <button class="btn ghost sm" data-view="fase2">← Fase 2</button>
+      <div class="oficina-id">
+        <b>${h(o.nome||"Sem nome")}</b>
+        <span class="mono">${h(o.id)}</span>
+      </div>
+      <div class="sp"></div>
+      ${o.linkCheckout ? `<a class="btn sm" href="${h(o.linkCheckout)}" target="_blank" rel="noopener">Checkout</a>` : ""}
+      ${o.linkDrive ? `<a class="btn sm" href="${h(o.linkDrive)}" target="_blank" rel="noopener">Drive</a>` : ""}
+      <button class="btn sm" data-open="oferta" data-id="${h(o.id)}">Ficha da oferta</button>
+    </div>`;
+
+  const painel = `
+    <div class="oficina-alarme t-${a.tom}">
+      <div class="oa-num">${a.dias === null ? "—" : Math.max(0,a.dias)}</div>
+      <div class="oa-txt">
+        <span class="pill p-${a.tom}">${h(a.rot)}</span>
+        <p>${h(a.nota)}</p>
+      </div>
+      <div class="oa-kpis">
+        ${kpi("Levas", ls.length)}
+        ${kpi("Criativos que gastaram", cris.length)}
+        ${kpi("Validados", val, val?"pos":"")}
+        ${kpi("Potenciais", pot)}
+        ${kpi("Gasto em criativo", money(gasto))}
+      </div>
+    </div>`;
+
+  return cabecalho + painel +
+    `<div class="toolbar"><h3>Levas</h3><div class="sp"></div>
+      ${podeEditar?`<button class="btn primary" data-act="nova-leva-oferta" data-id="${h(o.id)}">+ Nova leva</button>`:""}
+     </div>` +
+    tabelaLevas(ls) +
+    `<div class="toolbar" style="margin-top:22px"><h3>Criativos que gastaram</h3><div class="sp"></div>
+      <input class="search" data-filter="criativos" placeholder="Buscar ângulo, hook, formato…" value="${h(filters.criativos)}">
+      <button class="btn" data-act="csv-criativos">CSV</button></div>` +
+    criativoTable(false, o.id);
+}
+
+function tabelaLevas(ls){
+  if(!ls.length) return emptyState(
+    "Nenhuma leva ainda.",
+    "Cada leva é um lote de ~20 criativos, entregue a cada 2 dias.");
+
+  const tb = ls.map(l => {
+    const cs = crisDe(l.id);
+    const v = cs.filter(c => c.veredito === "VALIDADO").length;
+    const leitura = addDays(l.dataEntrega, 2);
+    const passou = leitura && diffDias(leitura, hojeIso()) >= 0;
     return `<tr>
       <td class="id" data-open="leva" data-id="${h(l.id)}" style="cursor:pointer">${h(l.id)}</td>
-      <td class="txt">${h(o?o.nome:"—")}</td>
       <td class="n">${br(l.dataEntrega)}</td>
-      <td class="n">${br(addDays(l.dataEntrega,2))}</td>
+      <td class="n">${br(leitura)}${passou && l.trafego !== "LIDO" ? ' <span class="pill p-warn">ler</span>' : ""}</td>
       <td class="n">${h(l.qtd||20)}</td>
       <td class="txt">${h(l.angulo||"—")}</td>
       <td>${pillsel(l.copy||"A FAZER", ST_PROD, "leva.copy", l.id)}</td>
       <td>${pillsel(l.edicao||"A FAZER", ST_PROD, "leva.edicao", l.id)}</td>
       <td>${pillsel(l.trafego||"A FAZER", ST_TRAF, "leva.trafego", l.id)}</td>
-      <td class="n">${cris.length}${val?` <span class="pill p-ok">${val} val</span>`:""}</td>
+      <td class="n">${cs.length}${v?` <span class="pill p-ok">${v} val</span>`:""}</td>
       <td>${podeEditar?`<button class="btn sm" data-act="new-criativo" data-id="${h(l.id)}">+ criativo</button>`:""}</td>
     </tr>`;
   }).join("");
 
-  const table = rows.length
-    ? `<div class="twrap"><table><thead><tr>` +
-      ["ID Leva","Oferta","Entrega","Leitura","Qtd","Ângulo da leva","Copy","Edição","Tráfego","Que gastou",""]
-        .map(t => `<th>${t}</th>`).join("") +
-      `</tr></thead><tbody>${tb}</tbody></table></div>`
-    : emptyState(
-        f2.length ? "Nenhuma leva ainda." : "Nenhuma oferta em Fase 2.",
-        f2.length ? "Cada leva é um lote de ~20 criativos entregue a cada 2 dias."
-                  : "Marque uma oferta como APROVADO → FASE 2 na aba Fase 1.",
-        f2.length ? "new-leva" : null, "Nova leva");
-
-  const sel = `<select class="selfilter" data-ofilter="leva"><option value="">Todas as ofertas</option>` +
-    state.ofertas.map(o => `<option value="${h(o.id)}"${levaOferta===o.id?" selected":""}>${h(o.id+" · "+(o.nome||""))}</option>`).join("") +
-    `</select>`;
-
-  return `<div class="toolbar"><h2>Fase 2 — Levas de criativo</h2><div class="sp"></div>${sel}
-    <input class="search" data-filter="levas" placeholder="Buscar leva…" value="${h(filters.levas)}">
-    <button class="btn" data-act="csv-levas">CSV</button>
-    ${podeEditar?`<button class="btn primary" data-act="new-leva"${f2.length?"":" disabled"}>+ Nova leva</button>`:""}
-    </div>${table}`;
+  return `<div class="twrap"><table><thead><tr>` +
+    ["Leva","Entrega","Leitura","Qtd","Ângulo da leva","Copy","Edição","Tráfego","Que gastou",""]
+      .map(t => `<th>${t}</th>`).join("") +
+    `</tr></thead><tbody>${tb}</tbody></table></div>`;
 }
 
 // ---------------------------------------------------------------------
 // Criativos / Vencedores
 // ---------------------------------------------------------------------
-function criativoTable(onlyWin){
+function criativoTable(onlyWin, escopo){
   const key = onlyWin ? "vencedores" : "criativos";
   const q = filters[key].toLowerCase();
   const rows = state.criativos.filter(c => {
     if (onlyWin && c.veredito !== "VALIDADO") return false;
     const l = byId(state.levas, c.levaId);
-    if (criOferta && (!l || l.ofertaId !== criOferta)) return false;
+    const oid = l ? l.ofertaId : null;
+    if (escopo){ if (oid !== escopo) return false; }
+    else if (criOferta && oid !== criOferta) return false;
     return !q || `${c.id} ${c.angulo} ${c.hook} ${c.formato} ${c.anguloHook}`.toLowerCase().includes(q);
   }).sort((a,b) => String(b.id).localeCompare(String(a.id)));
 
@@ -325,7 +467,7 @@ function criativoTable(onlyWin){
     return `<tr>
       <td class="id" data-open="criativo" data-id="${h(c.id)}" style="cursor:pointer">${h(c.id)}
         <button class="copyid" data-copy="${h(c.id)}" title="Copiar ID pro nome do anúncio">⧉</button></td>
-      <td class="txt">${h(o?o.nome:"—")}</td>
+      ${escopo ? "" : `<td class="txt">${h(o?o.nome:"—")}</td>`}
       <td class="txt">${h(c.angulo||"—")}</td>
       <td class="txt">${h(c.anguloHook||"—")}</td>
       <td class="txt">${h(c.hook||"—")}</td>
@@ -338,13 +480,17 @@ function criativoTable(onlyWin){
       <td>${pillsel(c.veredito||"VALIDADO", ST_VER_C, "cri.veredito", c.id)}</td></tr>`;
   }).join("");
 
-  const heads = ["ID (= nome do anúncio)","Oferta","Ângulo","Ângulo do Hook","Hook","Formato","Body","Pai","Gasto","CPA","ROAS","Veredito"];
+  const heads = escopo
+    ? ["ID (= nome do anúncio)","Ângulo","Ângulo do Hook","Hook","Formato","Body","Pai","Gasto","CPA","ROAS","Veredito"]
+    : ["ID (= nome do anúncio)","Oferta","Ângulo","Ângulo do Hook","Hook","Formato","Body","Pai","Gasto","CPA","ROAS","Veredito"];
   const table = rows.length
     ? `<div class="twrap"><table><thead><tr>${heads.map(t=>`<th>${t}</th>`).join("")}</tr></thead><tbody>${tb}</tbody></table></div>`
     : emptyState(
         onlyWin ? "Nenhum vencedor ainda." : "Nenhum criativo lançado ainda.",
         onlyWin ? "Criativos marcados como VALIDADO aparecem aqui, com ângulo, hook e formato."
                 : "Só entra aqui criativo que gastou. Use o botão “+ criativo” na leva.");
+
+  if(escopo) return table;   // na oficina a barra ja vem de fora
 
   const sel = `<select class="selfilter" data-ofilter="cri"><option value="">Todas as ofertas</option>` +
     state.ofertas.map(o => `<option value="${h(o.id)}"${criOferta===o.id?" selected":""}>${h(o.id+" · "+(o.nome||""))}</option>`).join("") +
@@ -390,6 +536,8 @@ function viewGuia(){
   <h3>Tráfego (na leva)</h3>
   <p>${pill("A FAZER")} → ${pill("PROGRAMADO")} → ${pill("EM TESTE")} → ${pill("LIDO")}</p>
   <p><b>LIDO</b> não quer dizer campanha parada. Quer dizer que o teste foi lido e o resultado já está registrado.</p>
+  <p>Enquanto a data de leitura já tiver passado e o tráfego não estiver como LIDO, a leva mostra
+     uma etiqueta <span class="pill p-warn">ler</span> na coluna de leitura.</p>
 
   <h3>Janelas de leitura</h3>
   <ul>
@@ -398,6 +546,32 @@ function viewGuia(){
       sem ele, a espera não produziu nada.</li>
   <li><b>Fase 2: 2 dias.</b> Calculada a partir da data de entrega da leva.</li>
   </ul>
+
+  <h3>O contador de dias da Fase 2</h3>
+  <p>A aba <b>Fase 2</b> não é uma tabela: é um cartão por oferta, e o número grande é
+     <b>quantos dias se passaram desde a última leva entregue</b>. As ofertas mais atrasadas
+     sobem pro topo sozinhas.</p>
+  <table class="gtable">
+  <tr><td>${pill("APROVADO").replace("APROVADO","EM DIA")}</td>
+      <td><b>0 ou 1 dia.</b> A leva atual ainda está em teste. Nada a fazer.</td></tr>
+  <tr><td>${pill("EM REVISÃO").replace("EM REVISÃO","ESCREVER HOJE")}</td>
+      <td><b>2 dias.</b> O teste da última leva fecha hoje — a próxima leva começa a ser escrita agora.</td></tr>
+  <tr><td>${pill("MORTA").replace("MORTA","ATRASADO")}</td>
+      <td><b>3 dias ou mais.</b> A esteira parou nessa oferta. O número ao lado diz há quantos dias.</td></tr>
+  <tr><td>${pill("MORTA").replace("MORTA","SEM LEVA")}</td>
+      <td>A oferta entrou na Fase 2 mas nunca recebeu leva nenhuma.</td></tr>
+  </table>
+  <p>Na prática: leva entregue dia 27 roda e é lida no fim do dia 29. No dia 29 o cartão vira
+     <b>ESCREVER HOJE</b>. Se você não entregar, no dia 30 ele vira <b>ATRASADO 1d</b> e assim por diante.
+     O contador no alto da tela mostra quantas ofertas estão nesse estado, de qualquer aba.</p>
+
+  <h3>A oficina de cada oferta</h3>
+  <p>Clicar num cartão abre o ambiente daquela oferta sozinha: o alarme dela, as levas dela e os
+     criativos dela. É de propósito que não exista uma tabela com as levas de todas as ofertas
+     misturadas — com 5 ofertas rodando a 20 criativos a cada 2 dias, essa tabela seria ilegível
+     em uma semana.</p>
+  <p>A única visão que continua atravessando todas as ofertas é a <b>Biblioteca de Vencedores</b>,
+     e é justamente esse o valor dela: comparar o que ganhou em mercados diferentes.</p>
 
   <h3>Veredito da oferta</h3>
   <table class="gtable">
@@ -620,10 +794,11 @@ async function novaOferta(){
   } catch(e){ toast("Não consegui criar: " + (e.message||e), true); }
 }
 
-async function novaLeva(){
-  const elegiveis = state.ofertas.filter(o => Number(o.fase||1)===2 || o.veredito==="APROVADO → FASE 2");
+async function novaLeva(ofertaId){
+  const elegiveis = ofertasFase2();
   if(!elegiveis.length){ toast("Nenhuma oferta em Fase 2.", true); return; }
-  let oid = levaOferta && byId(elegiveis,levaOferta) ? levaOferta : null;
+  let oid = ofertaId && byId(elegiveis, ofertaId) ? ofertaId : null;
+  if(!oid && levaOferta && byId(elegiveis, levaOferta)) oid = levaOferta;
   if(!oid){
     const msg = "Para qual oferta?\n\n" + elegiveis.map((o,i) => `${i+1}) ${o.id} — ${o.nome}`).join("\n");
     const pick = parseInt(prompt(msg,"1"),10);
@@ -639,6 +814,7 @@ async function novaLeva(){
       copy:"A FAZER", edicao:"A FAZER", trafego:"A FAZER", obs:""
     });
     state.levas.push(nova);
+    if(ofertaId){ ofertaAberta = ofertaId; view = "oficina"; }
     render(); openDrawer("leva", nova.id);
   } catch(e){ toast("Não consegui criar: " + (e.message||e), true); }
 }
@@ -716,14 +892,18 @@ document.addEventListener("click", async (e) => {
     return;
   }
 
+  const of = t.closest?.("[data-oficina]");
+  if(of){ ofertaAberta = of.getAttribute("data-oficina"); view = "oficina"; window.scrollTo(0,0); render(); return; }
+
   const tab = t.closest?.("[data-view]");
-  if(tab){ view = tab.getAttribute("data-view"); render(); return; }
+  if(tab){ view = tab.getAttribute("data-view"); window.scrollTo(0,0); render(); return; }
 
   const act = t.closest?.("[data-act]");
   if(act){
     const a = act.getAttribute("data-act"), aid = act.getAttribute("data-id");
     if(a==="new-oferta") novaOferta();
     else if(a==="new-leva") novaLeva();
+    else if(a==="nova-leva-oferta") novaLeva(aid);
     else if(a==="new-criativo"){ e.stopPropagation(); novoCriativo(aid); }
     else if(a==="close-drawer") closeDrawer();
     else if(a==="regravar") descarregar();

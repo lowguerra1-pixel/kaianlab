@@ -286,3 +286,85 @@ legend{
 }
 .toast.on{opacity:1; transform:translate(-50%,0)}
 .toast.ruim{background:var(--bad); color:#fff}
+
+/* ---------- Fase 2: cards por oferta ---------- */
+.banner.alerta{background:var(--bad-soft); border-color:var(--bad)}
+.banner.alerta b{color:var(--bad)}
+.banner.calmo{background:var(--ok-soft); border-color:var(--ok); color:var(--text)}
+.legenda{font-size:11.5px; color:var(--muted); display:flex; align-items:center; gap:5px; flex-wrap:wrap}
+
+.ocards{display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:12px}
+.ocard{
+  text-align:left; font:inherit; color:inherit; cursor:pointer;
+  background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--idle);
+  border-radius:var(--r); padding:13px 15px; display:flex; flex-direction:column; gap:9px;
+}
+.ocard:hover{border-color:var(--border2); box-shadow:var(--shadow)}
+.ocard.t-ok{border-left-color:var(--ok)}
+.ocard.t-warn{border-left-color:var(--warn)}
+.ocard.t-bad{border-left-color:var(--bad)}
+.ocard.t-info{border-left-color:var(--info)}
+.ocard-top{display:flex; align-items:baseline; gap:8px; justify-content:space-between}
+.ocard-nome{font-weight:600; font-size:14.5px; letter-spacing:-.01em}
+.ocard-id{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--faint); white-space:nowrap}
+.ocard-alarme{display:flex; align-items:center; gap:12px}
+.ocard-dias{
+  font-family:'IBM Plex Mono',monospace; font-size:38px; font-weight:600; line-height:1;
+  font-variant-numeric:tabular-nums; letter-spacing:-.04em; min-width:46px;
+}
+.ocard.t-ok .ocard-dias{color:var(--ok)}
+.ocard.t-warn .ocard-dias{color:var(--warn)}
+.ocard.t-bad .ocard-dias{color:var(--bad)}
+.ocard.t-info .ocard-dias{color:var(--info)}
+.ocard-lado{display:flex; flex-direction:column; gap:4px; align-items:flex-start}
+.ocard-lado small{color:var(--muted); font-size:11.5px; line-height:1.3}
+.ocard-nota{font-size:12.5px; color:var(--muted); line-height:1.45; min-height:2.6em}
+.ocard-pe{
+  display:flex; align-items:center; gap:11px; font-size:11.5px; color:var(--faint);
+  border-top:1px solid var(--border); padding-top:8px; flex-wrap:wrap;
+}
+.ocard-pe .sp{flex:1}
+.ocard-pe .forte{color:var(--ok); font-weight:600}
+
+/* ---------- oficina de uma oferta ---------- */
+.oficina-topo{display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap}
+.oficina-id{display:flex; align-items:baseline; gap:9px; min-width:0}
+.oficina-id b{font-size:17px; font-weight:600; letter-spacing:-.015em}
+.oficina-id .mono{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--accent)}
+.oficina-topo .sp{flex:1}
+
+.oficina-alarme{
+  display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+  background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--idle);
+  border-radius:var(--r); padding:15px 18px; margin-bottom:20px;
+}
+.oficina-alarme.t-ok{border-left-color:var(--ok)}
+.oficina-alarme.t-warn{border-left-color:var(--warn)}
+.oficina-alarme.t-bad{border-left-color:var(--bad)}
+.oficina-alarme.t-info{border-left-color:var(--info)}
+.oa-num{
+  font-family:'IBM Plex Mono',monospace; font-size:52px; font-weight:600; line-height:.95;
+  font-variant-numeric:tabular-nums; letter-spacing:-.05em;
+}
+.oficina-alarme.t-ok .oa-num{color:var(--ok)}
+.oficina-alarme.t-warn .oa-num{color:var(--warn)}
+.oficina-alarme.t-bad .oa-num{color:var(--bad)}
+.oficina-alarme.t-info .oa-num{color:var(--info)}
+.oa-txt{display:flex; flex-direction:column; gap:6px; max-width:34ch}
+.oa-txt p{margin:0; font-size:13px; color:var(--muted); line-height:1.45}
+.oa-kpis{display:flex; gap:9px; flex-wrap:wrap; margin-left:auto}
+.oa-kpis .kpi{min-width:104px}
+
+.toolbar h3{margin:0; font-size:14px; font-weight:600; letter-spacing:-.01em}
+
+/* ---------- sino de alerta na barra ---------- */
+.sino{
+  border:1px solid var(--bad); background:var(--bad-soft); color:var(--bad);
+  border-radius:20px; padding:4px 11px; font-size:12px; font-weight:600;
+  cursor:pointer; white-space:nowrap; flex-shrink:0;
+}
+.sino:hover{filter:brightness(.96)}
+@media(max-width:720px){
+  .oa-kpis{margin-left:0}
+  .ocards{grid-template-columns:1fr}
+}
