@@ -4,7 +4,7 @@
 
 import {
   sb, configurado, sessaoAtual, entrar, sair, aoMudarAuth, meuPapel,
-  carregarTudo, inserirComId, remover, agendarPatch, descarregar,
+  carregarTudo, inserirComId, remover, renomearOferta, agendarPatch, descarregar,
   aoMudarGravacao, temPendencia, inscrever
 } from "./dados.js";
 
@@ -15,8 +15,8 @@ const BUILD_STEPS = [
   ["research","Research"], ["entregavel","Entregável"], ["checkout","Checkout"],
   ["obEntregavel","O.B + Entregável"], ["app","App"], ["backRedirect","Back-Redirect"]
 ];
-const ST_BUILD = ["A FAZER","FAZENDO","EM REVISÃO","APROVADO","BLOQUEADO","N/A"];
-const ST_PROD  = ["A FAZER","FAZENDO","EM REVISÃO","APROVADO","BLOQUEADO"];
+const ST_BUILD = ["BRAIN","A FAZER","FAZENDO","EM REVISÃO","APROVADO","BLOQUEADO","N/A"];
+const ST_PROD  = ["BRAIN","A FAZER","FAZENDO","EM REVISÃO","APROVADO","BLOQUEADO"];
 const ST_TRAF  = ["A FAZER","PROGRAMADO","EM TESTE","LIDO"];
 const ST_VER_O = ["EM TESTE","APROVADO → FASE 2","REPESCAGEM","MORTA"];
 const ST_VER_C = ["VALIDADO","POTENCIAL","MORTO","LATERALIZADO"];
@@ -24,8 +24,8 @@ const PAISES   = ["BR","AR","MX","CO","CL","PE","EC","ES","PT","US","IT"];
 const FORMATOS = ["UGC","Depoimento","Slideshow","VSL curta","Motion/IA","Screen record","Foto estática","Carrossel","Outro"];
 
 const TONE = {
-  "A FAZER":"idle","FAZENDO":"info","EM REVISÃO":"warn","APROVADO":"ok","BLOQUEADO":"bad","N/A":"idle",
-  "PROGRAMADO":"info","EM TESTE":"warn","LIDO":"ok",
+  "BRAIN":"idle","A FAZER":"warn","FAZENDO":"info","EM REVISÃO":"rev","APROVADO":"ok","BLOQUEADO":"bad","N/A":"idle",
+  "PROGRAMADO":"info","EM TESTE":"rev","LIDO":"ok",
   "APROVADO → FASE 2":"ok","REPESCAGEM":"warn","MORTA":"bad",
   "VALIDADO":"ok","POTENCIAL":"warn","MORTO":"bad","LATERALIZADO":"info"
 };
@@ -276,7 +276,7 @@ function viewOfertas(){
     const leitura = addDays(o.dataInicio, 5);
     const podeLer = leitura && diffDias(leitura, hojeIso()) >= 0 && o.veredito === "EM TESTE";
     const celulasBuild = BUILD_STEPS.map(sp =>
-      `<td class="g-build">${pillsel((o.build && o.build[sp[0]]) || "A FAZER", ST_BUILD, "build."+sp[0], o.id)}</td>`
+      `<td class="g-build">${pillsel((o.build && o.build[sp[0]]) || "BRAIN", ST_BUILD, "build."+sp[0], o.id)}</td>`
     ).join("");
     return `<tr>
       <td class="id trava" data-open="oferta" data-id="${h(o.id)}" title="Abrir a ficha">${h(o.id)}</td>
@@ -449,8 +449,8 @@ function tabelaLevas(ls){
       <td class="n">${br(leitura)}${passou && l.trafego !== "LIDO" ? ' <span class="pill p-warn">ler</span>' : ""}</td>
       <td class="n">${h(l.qtd||20)}</td>
       <td class="txt">${h(l.angulo||"—")}</td>
-      <td>${pillsel(l.copy||"A FAZER", ST_PROD, "leva.copy", l.id)}</td>
-      <td>${pillsel(l.edicao||"A FAZER", ST_PROD, "leva.edicao", l.id)}</td>
+      <td>${pillsel(l.copy||"BRAIN", ST_PROD, "leva.copy", l.id)}</td>
+      <td>${pillsel(l.edicao||"BRAIN", ST_PROD, "leva.edicao", l.id)}</td>
       <td>${pillsel(l.trafego||"A FAZER", ST_TRAF, "leva.trafego", l.id)}</td>
       <td class="n">${cs.length}${v?` <span class="pill p-ok">${v} val</span>`:""}</td>
       <td>${podeEditar?`<button class="btn sm" data-act="new-criativo" data-id="${h(l.id)}">+ criativo</button>`:""}</td>
@@ -535,20 +535,26 @@ function viewGuia(){
 
   <h3>Convenção de ID</h3>
   <table class="gtable">
-  <tr><td><code>ART-BR-01</code></td><td>Oferta — 3 letras + país + sequencial. Nunca muda, mesmo que o nome mude.</td></tr>
+  <tr><td><code>ART-BR-01</code></td><td>Oferta — é só a sugestão do Lab ao criar. Você pode trocar por qualquer padrão seu em <b>Ficha da oferta → Alterar ID</b>, com maiúsculas ou minúsculas como preferir.</td></tr>
   <tr><td><code>ART-BR-01-L07</code></td><td>Leva 07 daquela oferta. Gerado automático.</td></tr>
   <tr><td><code>ART-BR-01-L07-C03</code></td><td>Criativo 03 da leva 07. Este é o nome do anúncio.</td></tr>
   </table>
 
   <h3>Status de build e produção</h3>
   <table class="gtable">
-  <tr><td>${pill("A FAZER")}</td><td>Ninguém começou.</td></tr>
+  <tr><td>${pill("BRAIN")}</td><td><b>Existe, mas não entrou na fila.</b> É o estado inicial de tudo. Cinza de propósito: não pede nada de você.</td></tr>
+  <tr><td>${pill("A FAZER")}</td><td><b>Entrou na fila e precisa ser feito.</b> Âmbar porque é alerta — alguém precisa pegar isso.</td></tr>
   <tr><td>${pill("FAZENDO")}</td><td>Em execução agora. Existe pra o meio não ficar invisível.</td></tr>
   <tr><td>${pill("EM REVISÃO")}</td><td>Pronto, esperando aprovação do Kaian.</td></tr>
   <tr><td>${pill("APROVADO")}</td><td>Fechado.</td></tr>
-  <tr><td>${pill("BLOQUEADO")}</td><td>Parado esperando algo externo — conta, gateway, terceiro. É o status que salva dinheiro.</td></tr>
+  <tr><td>${pill("BLOQUEADO")}</td><td>Parado esperando algo externo — conta, gateway, terceiro. É o único vermelho do sistema, e é o status que salva dinheiro.</td></tr>
   <tr><td>${pill("N/A")}</td><td>Essa oferta não tem essa etapa.</td></tr>
   </table>
+  <p>A diferença entre <b>BRAIN</b> e <b>A FAZER</b> é o que faz a cor funcionar. Se tudo começasse
+     em A FAZER, a tela inteira seria âmbar e o alerta não significaria nada. Mover pra A FAZER é
+     uma decisão: <i>isto agora é trabalho</i>.</p>
+  <p>O vermelho é exclusivo do BLOQUEADO. Se algo está vermelho, não é "falta fazer" — é
+     "não dá pra fazer, alguém precisa destravar".</p>
 
   <h3>Tráfego (na leva)</h3>
   <p>${pill("A FAZER")} → ${pill("PROGRAMADO")} → ${pill("EM TESTE")} → ${pill("LIDO")}</p>
@@ -589,6 +595,15 @@ function viewGuia(){
      em uma semana.</p>
   <p>A única visão que continua atravessando todas as ofertas é a <b>Biblioteca de Vencedores</b>,
      e é justamente esse o valor dela: comparar o que ganhou em mercados diferentes.</p>
+
+  <h3>Trocar o ID de uma oferta</h3>
+  <p>Na ficha da oferta tem <b>Alterar ID</b>. As levas acompanham sozinhas.</p>
+  <div class="rule"><p>O que <b>não</b> muda: os IDs das levas e criativos que já existem.
+     <code>ART-BR-01-L07-C03</code> continua <code>ART-BR-01-L07-C03</code> mesmo que a oferta
+     vire outra coisa — porque esse código já é o nome de um anúncio rodando no Meta, e reescrevê-lo
+     aqui quebraria o vínculo com os resultados. Só as levas criadas depois usam o ID novo.</p></div>
+  <p>Na prática isso significa que uma oferta renomeada tem levas antigas com um prefixo e levas
+     novas com outro. É feio e é intencional: o histórico continua casando com o Meta.</p>
 
   <h3>Veredito da oferta</h3>
   <table class="gtable">
@@ -667,13 +682,21 @@ function drawerOferta(id){
   const o = byId(state.ofertas,id); if(!o) return "";
   const l = lucro(o), r = roas(o);
   const checks = BUILD_STEPS.map(s => {
-    const v = (o.build && o.build[s[0]]) || "A FAZER";
+    const v = (o.build && o.build[s[0]]) || "BRAIN";
     return `<div class="checkrow"><span>${h(s[1])}</span>
       <select class="p-${tone(v)}" data-build="${h(o.id)}" data-step="${s[0]}"${ro()}>${opts(ST_BUILD,v)}</select></div>`;
   }).join("");
 
   const inner =
-    `<fieldset><legend>Identificação</legend><div class="grid">
+    `<fieldset><legend>Identificação</legend>
+    <div class="f full" style="margin-bottom:10px"><label>ID da oferta</label>
+      <div class="calc" style="display:flex;align-items:center;gap:8px">
+        <span style="flex:1">${h(o.id)}</span>
+        ${podeEditar?`<button class="btn sm" data-act="renomear" data-id="${h(o.id)}">Alterar ID</button>`:""}
+      </div>
+      <span class="hint">Levas e criativos já criados mantêm o código antigo — o ID do criativo é o nome do anúncio no Meta.</span>
+    </div>
+    <div class="grid">
       ${fld("Nome da oferta","oferta",id,"nome","text",o.nome)}
       ${sel("País","oferta",id,"pais",PAISES,o.pais)}
       ${fld("Responsável","oferta",id,"responsavel","text",o.responsavel)}
@@ -729,8 +752,8 @@ function drawerLeva(id){
       ${area("Ângulo da leva","leva",id,"angulo",l.angulo,"O tema que orienta os 20 criativos deste lote.")}
     </div></fieldset>
     <fieldset><legend>Produção</legend><div class="grid g3">
-      ${sel("Copy","leva",id,"copy",ST_PROD,l.copy||"A FAZER")}
-      ${sel("Edição","leva",id,"edicao",ST_PROD,l.edicao||"A FAZER")}
+      ${sel("Copy","leva",id,"copy",ST_PROD,l.copy||"BRAIN")}
+      ${sel("Edição","leva",id,"edicao",ST_PROD,l.edicao||"BRAIN")}
       ${sel("Tráfego","leva",id,"trafego",ST_TRAF,l.trafego||"A FAZER")}
     </div></fieldset>
     <fieldset><legend>Criativos que gastaram
@@ -788,6 +811,42 @@ function drawerCriativo(id){
 // ---------------------------------------------------------------------
 // Criação
 // ---------------------------------------------------------------------
+async function renomearId(velho){
+  const o = byId(state.ofertas, velho); if(!o) return;
+  let novo = prompt(`Novo ID para "${o.nome}".\n\nLetras, números e hífen. Sem espaços.`, velho);
+  if(novo === null) return;
+  // Sem forçar maiúsculas: o padrão de nome é do Kaian, não meu.
+  novo = novo.trim().replace(/\s+/g, "-");
+  if(!novo || novo === velho) return;
+  if(!/^[A-Za-z0-9._-]{2,40}$/.test(novo)){
+    toast("ID inválido. Use letras, números, ponto, hífen ou underline (2 a 40 caracteres).", true); return;
+  }
+  const colide = state.ofertas.find(x => x.id.toLowerCase() === novo.toLowerCase() && x.id !== velho);
+  if(colide){ toast(`Já existe uma oferta com o ID ${colide.id}.`, true); return; }
+
+  const ls = levasDe(velho);
+  const nc = ls.flatMap(l => crisDe(l.id)).length;
+  const ressalva = ls.length
+    ? `\n\nAs ${ls.length} leva(s) e ${nc} criativo(s) que já existem continuam com o código antigo `
+      + `(${velho}-…), porque o ID do criativo é o nome do anúncio no Meta e reescrevê-lo quebraria `
+      + `o vínculo com os resultados. Só o que for criado a partir de agora usa ${novo}.`
+    : "";
+  if(!confirm(`Renomear ${velho} para ${novo}?${ressalva}`)) return;
+
+  try {
+    await renomearOferta(velho, novo);
+    o.id = novo;
+    state.levas.forEach(l => { if(l.ofertaId === velho) l.ofertaId = novo; });
+    if(ofertaAberta === velho) ofertaAberta = novo;
+    if(levaOferta === velho) levaOferta = novo;
+    if(criOferta === velho) criOferta = novo;
+    closeDrawer();
+    toast(`Agora é ${novo}.`);
+  } catch(e){
+    toast("Não consegui renomear: " + (e.message || e), true);
+  }
+}
+
 async function novaOferta(){
   const nome = prompt("Nome da oferta:"); if(!nome) return;
   let sig = prompt("Sigla de 3 letras (ex: ART):",""); if(!sig) return;
@@ -828,7 +887,7 @@ async function novaLeva(ofertaId){
   try {
     const nova = await inserirComId("levas", n => `${oid}-L${pad(jaTem + n)}`, {
       ofertaId: oid, dataEntrega: iso, qtd: 20, angulo:"",
-      copy:"A FAZER", edicao:"A FAZER", trafego:"A FAZER", obs:""
+      copy:"BRAIN", edicao:"BRAIN", trafego:"A FAZER", obs:""
     });
     state.levas.push(nova);
     if(ofertaId){ ofertaAberta = ofertaId; view = "oficina"; }
@@ -921,6 +980,7 @@ document.addEventListener("click", async (e) => {
     if(a==="new-oferta") novaOferta();
     else if(a==="new-leva") novaLeva();
     else if(a==="nova-leva-oferta") novaLeva(aid);
+    else if(a==="renomear") renomearId(aid);
     else if(a==="new-criativo"){ e.stopPropagation(); novoCriativo(aid); }
     else if(a==="close-drawer") closeDrawer();
     else if(a==="regravar") descarregar();

@@ -8,6 +8,7 @@
   --bad:#BB4239; --bad-soft:#F7E0DD;
   --info:#37669E; --info-soft:#DFE8F3;
   --idle:#74807F; --idle-soft:#E4E8E8;
+  --rev:#7A4A9E; --rev-soft:#EEE5F6;
   --faixa-build:rgba(55,102,158,.075);
   --faixa-teste:rgba(174,115,21,.085);
   --faixa-res:rgba(12,110,102,.07);
@@ -29,6 +30,7 @@
   --bad:#D4655A; --bad-soft:#331A17;
   --info:#5C93D6; --info-soft:#14243A;
   --idle:#8A9695; --idle-soft:#232B2B;
+  --rev:#B58AE0; --rev-soft:#291D38;
   --faixa-build:rgba(92,147,214,.12);
   --faixa-teste:rgba(209,154,50,.12);
   --faixa-res:rgba(47,167,155,.11);
@@ -49,6 +51,7 @@
   --bad:#D4655A; --bad-soft:#331A17;
   --info:#5C93D6; --info-soft:#14243A;
   --idle:#8A9695; --idle-soft:#232B2B;
+  --rev:#B58AE0; --rev-soft:#291D38;
   --faixa-build:rgba(92,147,214,.12);
   --faixa-teste:rgba(209,154,50,.12);
   --faixa-res:rgba(47,167,155,.11);
@@ -171,6 +174,7 @@ td.txt{max-width:170px; overflow:hidden; text-overflow:ellipsis; color:var(--mut
 .p-warn{background:var(--warn-soft); color:var(--warn)}
 .p-ok{background:var(--ok-soft); color:var(--ok)}
 .p-bad{background:var(--bad-soft); color:var(--bad)}
+.p-rev{background:var(--rev-soft); color:var(--rev)}
 
 select.pillsel{
   appearance:none; border:1px solid var(--border); border-radius:20px;
@@ -183,12 +187,14 @@ select.pillsel.p-info{background-color:var(--info-soft); color:var(--info)}
 select.pillsel.p-warn{background-color:var(--warn-soft); color:var(--warn)}
 select.pillsel.p-ok{background-color:var(--ok-soft); color:var(--ok)}
 select.pillsel.p-bad{background-color:var(--bad-soft); color:var(--bad)}
+select.pillsel.p-rev{background-color:var(--rev-soft); color:var(--rev)}
 
 /* build progress squares */
 .buildbar{display:inline-flex; gap:3px}
 .bsq{width:13px; height:13px; border-radius:3px; background:var(--idle-soft); border:1px solid var(--border)}
 .bsq.s-info{background:var(--info)} .bsq.s-warn{background:var(--warn)}
 .bsq.s-ok{background:var(--ok)} .bsq.s-bad{background:var(--bad)}
+.bsq.s-rev{background:var(--rev)}
 .bsq.s-na{background:transparent; border-style:dashed}
 
 .copyid{border:0;background:none;cursor:pointer;color:var(--faint);padding:0 0 0 5px;font-size:11px}
@@ -325,6 +331,7 @@ legend{
 .ocard.t-warn{border-left-color:var(--warn)}
 .ocard.t-bad{border-left-color:var(--bad)}
 .ocard.t-info{border-left-color:var(--info)}
+.ocard.t-rev{border-left-color:var(--rev)}
 .ocard-top{display:flex; align-items:baseline; gap:8px; justify-content:space-between}
 .ocard-nome{font-weight:600; font-size:14.5px; letter-spacing:-.01em}
 .ocard-id{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--faint); white-space:nowrap}
@@ -363,6 +370,7 @@ legend{
 .oficina-alarme.t-warn{border-left-color:var(--warn)}
 .oficina-alarme.t-bad{border-left-color:var(--bad)}
 .oficina-alarme.t-info{border-left-color:var(--info)}
+.oficina-alarme.t-rev{border-left-color:var(--rev)}
 .oa-num{
   font-family:'IBM Plex Mono',monospace; font-size:52px; font-weight:600; line-height:.95;
   font-variant-numeric:tabular-nums; letter-spacing:-.05em;
@@ -447,6 +455,7 @@ select.pillsel.p-info{border-color:var(--info)}
 select.pillsel.p-warn{border-color:var(--warn)}
 select.pillsel.p-ok{border-color:var(--ok)}
 select.pillsel.p-bad{border-color:var(--bad)}
+select.pillsel.p-rev{border-color:var(--rev)}
 
 /* pílulas um pouco mais presentes */
 .pill{padding:2px 9px; font-size:11px; font-weight:700; letter-spacing:.015em}
@@ -455,6 +464,7 @@ select.pillsel.p-bad{border-color:var(--bad)}
 .p-warn{border-color:var(--warn-soft)}
 .p-ok{border-color:var(--ok-soft)}
 .p-bad{border-color:var(--bad-soft)}
+.p-rev{border-color:var(--rev-soft)}
 
 /* números com sinal ganham cor */
 td.n.pos{color:var(--ok); font-weight:600}

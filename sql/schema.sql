@@ -52,6 +52,7 @@ create table if not exists public.ofertas (
   ticket_medio   numeric,
   take_rate_ob   numeric,
   veredito       text not null default 'EM TESTE',
+  -- build: BRAIN > A FAZER > FAZENDO > EM REVISÃO > APROVADO (+ BLOQUEADO, N/A)
   aprendizado    text not null default '',
   obs            text not null default '',
   criado_em      timestamptz not null default now(),
@@ -60,12 +61,12 @@ create table if not exists public.ofertas (
 
 create table if not exists public.levas (
   id             text primary key,          -- ART-BR-01-L07
-  oferta_id      text not null references public.ofertas(id) on delete cascade,
+  oferta_id      text not null references public.ofertas(id) on update cascade on delete cascade,
   data_entrega   date,
   qtd            integer not null default 20,
   angulo         text not null default '',
-  copy           text not null default 'A FAZER',
-  edicao         text not null default 'A FAZER',
+  copy           text not null default 'BRAIN',
+  edicao         text not null default 'BRAIN',
   trafego        text not null default 'A FAZER',
   obs            text not null default '',
   criado_em      timestamptz not null default now(),
@@ -91,6 +92,28 @@ create table if not exists public.criativos (
   atualizado_em  timestamptz not null default now()
 );
 create index if not exists criativos_leva_idx on public.criativos(leva_id);
+
+-- ---------------------------------------------------------------------
+-- 2b. Garante ON UPDATE CASCADE (bancos criados antes desta versão)
+-- Sem isso, trocar o ID de uma oferta é recusado pelo Postgres.
+-- ---------------------------------------------------------------------
+do $$
+declare nome text;
+begin
+  select tc.constraint_name into nome
+    from information_schema.table_constraints tc
+    join information_schema.referential_constraints rc
+      on rc.constraint_name = tc.constraint_name
+   where tc.table_schema = 'public' and tc.table_name = 'levas'
+     and tc.constraint_type = 'FOREIGN KEY' and rc.update_rule <> 'CASCADE'
+   limit 1;
+  if nome is not null then
+    execute format('alter table public.levas drop constraint %I', nome);
+    execute 'alter table public.levas add constraint levas_oferta_id_fkey
+             foreign key (oferta_id) references public.ofertas(id)
+             on update cascade on delete cascade';
+  end if;
+end $$;
 
 -- ---------------------------------------------------------------------
 -- 3. atualizado_em automático

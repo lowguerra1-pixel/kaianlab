@@ -134,6 +134,18 @@ export async function carregarTudo(){
 // ---------------------------------------------------------------------
 // Escrita
 // ---------------------------------------------------------------------
+/**
+ * Troca o ID (chave primária) de uma oferta. As levas seguem sozinhas por
+ * causa do ON UPDATE CASCADE na chave estrangeira. Os IDs das levas e dos
+ * criativos NÃO mudam: o ID do criativo é o nome do anúncio no Meta, e
+ * reescrevê-lo quebraria justamente o vínculo que ele existe pra manter.
+ */
+export async function renomearOferta(velho, novo){
+  await descarregar();   // grava pendências antes de mexer na chave
+  const { error } = await sb.from("ofertas").update({ id: novo }).eq("id", velho);
+  if (error) throw error;
+}
+
 export async function remover(tabela, id){
   const { error } = await sb.from(tabela).delete().eq("id", id);
   if (error) throw error;
