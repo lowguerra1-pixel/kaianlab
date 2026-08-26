@@ -43,6 +43,7 @@ let papel = null;
 let sessao = null;
 let gravacao = "ok", erroGravacao = "";
 let podeEditar = false;
+let assinaturasLigadas = false;
 
 const $app = () => document.getElementById("app");
 
@@ -863,6 +864,16 @@ function aplicarRemoto({ tabela, tipo, linha, id }){
 // Boot
 // ---------------------------------------------------------------------
 async function boot(){
+  try {
+    await bootInterno();
+  } catch(e){
+    // Sem isto, qualquer falha aqui (rede, sessão expirada) deixava a
+    // página carregando pra sempre, sem nada na tela.
+    telaErro(e);
+  }
+}
+
+async function bootInterno(){
   if(!configurado){ telaConfig(); return; }
 
   sessao = await sessaoAtual();
@@ -876,16 +887,18 @@ async function boot(){
     state = await carregarTudo();
   } catch(e){ telaErro(e); return; }
 
-  aoMudarGravacao((estado, detalhe) => {
-    gravacao = estado;
-    if(estado === "erro"){
-      erroGravacao = detalhe?.message || "";
-      toast("Não consegui gravar: " + erroGravacao, true);
-    }
-    paintSave();
-  });
-
-  inscrever(aplicarRemoto);
+  if(!assinaturasLigadas){
+    assinaturasLigadas = true;
+    aoMudarGravacao((estado, detalhe) => {
+      gravacao = estado;
+      if(estado === "erro"){
+        erroGravacao = detalhe?.message || "";
+        toast("Não consegui gravar: " + erroGravacao, true);
+      }
+      paintSave();
+    });
+    inscrever(aplicarRemoto);
+  }
   render();
 }
 
@@ -915,7 +928,7 @@ document.addEventListener("submit", async (e) => {
   aviso.textContent = "Entrando…";
   try {
     await entrar(email, senha);
-    // o listener de auth recarrega a pagina sozinho
+    await boot();
   } catch(err){
     aviso.textContent = explicaErro(err);
     botao.disabled = false;
@@ -923,7 +936,11 @@ document.addEventListener("submit", async (e) => {
 });
 
 aoMudarAuth((evento) => {
-  if(evento === "SIGNED_IN" || evento === "SIGNED_OUT") location.reload();
+  // Só SIGNED_OUT recarrega. SIGNED_IN NÃO pode recarregar: o supabase-js
+  // dispara esse evento toda vez que restaura a sessão salva ao abrir a
+  // página, e recarregar aqui gera laço infinito. Quem monta a tela depois
+  // do login é o boot(), chamado direto no submit.
+  if(evento === "SIGNED_OUT") location.reload();
 });
 
 boot();

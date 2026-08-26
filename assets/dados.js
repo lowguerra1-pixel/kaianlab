@@ -101,7 +101,14 @@ export function aoMudarAuth(cb){
 /** Devolve 'editor' | 'leitor' | null (null = autenticado mas fora da allowlist). */
 export async function meuPapel(){
   if (!sb) return null;
-  const { data, error } = await sb.from("membros").select("papel").limit(1).maybeSingle();
+  const { data: u } = await sb.auth.getUser();
+  const email = u?.user?.email?.toLowerCase();
+  if (!email) return null;
+  // Filtrar pelo próprio e-mail é obrigatório: a política de RLS deixa um
+  // membro enxergar a lista inteira, então um select solto devolveria o
+  // papel de qualquer pessoa — um leitor poderia entrar como editor.
+  const { data, error } = await sb.from("membros")
+    .select("papel").eq("email", email).maybeSingle();
   if (error || !data) return null;
   return data.papel;
 }
