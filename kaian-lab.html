@@ -1,0 +1,1079 @@
+<title>Kaian Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --bg:#EDEFF0; --surface:#FFFFFF; --surface2:#F6F8F8; --surface3:#EEF1F1;
+  --border:#D7DCDD; --border2:#BFC7C8;
+  --text:#151A1B; --muted:#5C686A; --faint:#8A9597;
+  --accent:#0C6E66; --accent-ink:#FFFFFF; --accent-soft:#DBEDEA; --accent-line:#0C6E66;
+  --ok:#2C8A4F; --ok-soft:#DCEFE2;
+  --warn:#AE7315; --warn-soft:#F6E9D2;
+  --bad:#BB4239; --bad-soft:#F7E0DD;
+  --info:#37669E; --info-soft:#DFE8F3;
+  --idle:#74807F; --idle-soft:#E4E8E8;
+  --shadow:0 1px 2px rgba(20,30,30,.06),0 8px 24px rgba(20,30,30,.08);
+  --r:7px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+  --bg:#0D1112; --surface:#151A1B; --surface2:#1B2122; --surface3:#222A2B;
+  --border:#28312F; --border2:#3B4746;
+  --text:#E5EAEA; --muted:#909D9E; --faint:#6B7878;
+  --accent:#2FA79B; --accent-ink:#062120; --accent-soft:#10322F; --accent-line:#2FA79B;
+  --ok:#4FB471; --ok-soft:#12301D;
+  --warn:#D19A32; --warn-soft:#332512;
+  --bad:#D4655A; --bad-soft:#331A17;
+  --info:#5C93D6; --info-soft:#14243A;
+  --idle:#8A9695; --idle-soft:#232B2B;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 32px rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1112; --surface:#151A1B; --surface2:#1B2122; --surface3:#222A2B;
+  --border:#28312F; --border2:#3B4746;
+  --text:#E5EAEA; --muted:#909D9E; --faint:#6B7878;
+  --accent:#2FA79B; --accent-ink:#062120; --accent-soft:#10322F; --accent-line:#2FA79B;
+  --ok:#4FB471; --ok-soft:#12301D;
+  --warn:#D19A32; --warn-soft:#332512;
+  --bad:#D4655A; --bad-soft:#331A17;
+  --info:#5C93D6; --info-soft:#14243A;
+  --idle:#8A9695; --idle-soft:#232B2B;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 32px rgba(0,0,0,.45);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:'Archivo',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:14px; line-height:1.45; -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.num{font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+
+/* ---------- top bar ---------- */
+.top{
+  position:sticky; top:0; z-index:60; background:var(--surface);
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:20px; padding:0 18px; height:54px;
+}
+.brand{display:flex; align-items:baseline; gap:8px; flex-shrink:0}
+.brand b{font-weight:700; letter-spacing:-.02em; font-size:16px}
+.brand span{
+  font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.14em;
+  color:var(--accent); text-transform:uppercase; padding:2px 6px;
+  border:1px solid var(--accent); border-radius:3px;
+}
+nav{display:flex; gap:2px; flex:1; overflow-x:auto; scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+.tab{
+  background:none; border:0; cursor:pointer; padding:8px 12px; border-radius:var(--r);
+  color:var(--muted); font-weight:500; white-space:nowrap; font-size:13.5px;
+}
+.tab:hover{background:var(--surface3); color:var(--text)}
+.tab[aria-selected="true"]{background:var(--accent-soft); color:var(--accent); font-weight:600}
+.tab .cnt{font-family:'IBM Plex Mono',monospace; font-size:11px; opacity:.65; margin-left:5px}
+
+.saveState{display:flex; align-items:center; gap:9px; flex-shrink:0}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ok);flex-shrink:0}
+.dot.dirty{background:var(--warn)}
+.dot.err{background:var(--bad)}
+.saveState small{color:var(--muted); font-size:12px; white-space:nowrap}
+
+/* ---------- buttons ---------- */
+.btn{
+  border:1px solid var(--border2); background:var(--surface); border-radius:var(--r);
+  padding:6px 11px; cursor:pointer; font-size:13px; font-weight:500;
+  display:inline-flex; align-items:center; gap:6px;
+}
+.btn:hover{background:var(--surface3)}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:600}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{border-color:transparent; background:transparent; color:var(--muted)}
+.btn.ghost:hover{background:var(--surface3); color:var(--text)}
+.btn.sm{padding:3px 8px; font-size:12px}
+.btn:disabled{opacity:.45; cursor:not-allowed}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+/* ---------- layout ---------- */
+main{padding:16px 18px 80px}
+.banner{
+  background:var(--warn-soft); border:1px solid var(--warn); color:var(--text);
+  border-radius:var(--r); padding:10px 13px; margin-bottom:14px; font-size:13px;
+}
+.banner b{color:var(--warn)}
+
+.kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(132px,1fr)); gap:10px; margin-bottom:16px}
+.kpi{background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:10px 12px}
+.kpi .lbl{font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--faint); font-weight:600}
+.kpi .val{font-family:'IBM Plex Mono',monospace; font-size:19px; font-weight:600; margin-top:3px; font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+.kpi .val.pos{color:var(--ok)} .kpi .val.neg{color:var(--bad)}
+
+.toolbar{display:flex; align-items:center; gap:9px; margin-bottom:11px; flex-wrap:wrap}
+.toolbar h2{margin:0; font-size:15px; font-weight:600; letter-spacing:-.01em}
+.toolbar .sp{flex:1}
+.search{
+  border:1px solid var(--border2); background:var(--surface); border-radius:var(--r);
+  padding:6px 10px; width:210px; font-size:13px;
+}
+.selfilter{border:1px solid var(--border2); background:var(--surface); border-radius:var(--r); padding:6px 8px; font-size:13px}
+
+/* ---------- table ---------- */
+.twrap{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--r);
+  overflow:auto; max-height:calc(100vh - 132px);
+}
+.twrap.with-kpis{max-height:calc(100vh - 238px)}
+table{border-collapse:collapse; width:100%; min-width:max-content}
+thead th{
+  position:sticky; top:0; z-index:20; background:var(--surface2);
+  text-align:left; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--faint); font-weight:600; padding:8px 10px; white-space:nowrap;
+  border-bottom:1px solid var(--border);
+}
+tbody td{padding:7px 10px; border-bottom:1px solid var(--border); white-space:nowrap; vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--surface2)}
+td.id{font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:500; letter-spacing:-.01em}
+td.n{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; text-align:right; font-size:12.5px}
+td.name{font-weight:500; max-width:230px; overflow:hidden; text-overflow:ellipsis}
+td.txt{max-width:170px; overflow:hidden; text-overflow:ellipsis; color:var(--muted); font-size:13px}
+.pos{color:var(--ok)} .neg{color:var(--bad)}
+.empty{padding:44px 18px; text-align:center; color:var(--muted)}
+.empty p{margin:0 0 14px}
+
+/* ---------- pills ---------- */
+.pill{
+  display:inline-block; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600;
+  letter-spacing:.02em; white-space:nowrap; border:1px solid transparent;
+}
+.p-idle{background:var(--idle-soft); color:var(--idle); border-color:var(--idle-soft)}
+.p-info{background:var(--info-soft); color:var(--info)}
+.p-warn{background:var(--warn-soft); color:var(--warn)}
+.p-ok{background:var(--ok-soft); color:var(--ok)}
+.p-bad{background:var(--bad-soft); color:var(--bad)}
+
+select.pillsel{
+  appearance:none; border:1px solid var(--border); border-radius:20px;
+  padding:2px 20px 2px 8px; font-size:11px; font-weight:600; cursor:pointer;
+  background-repeat:no-repeat; background-position:right 6px center; background-size:8px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%23808c8c' stroke-width='1.5' fill='none'/></svg>");
+}
+select.pillsel.p-idle{background-color:var(--idle-soft); color:var(--idle)}
+select.pillsel.p-info{background-color:var(--info-soft); color:var(--info)}
+select.pillsel.p-warn{background-color:var(--warn-soft); color:var(--warn)}
+select.pillsel.p-ok{background-color:var(--ok-soft); color:var(--ok)}
+select.pillsel.p-bad{background-color:var(--bad-soft); color:var(--bad)}
+
+/* build progress squares */
+.buildbar{display:inline-flex; gap:3px}
+.bsq{width:13px; height:13px; border-radius:3px; background:var(--idle-soft); border:1px solid var(--border)}
+.bsq.s-info{background:var(--info)} .bsq.s-warn{background:var(--warn)}
+.bsq.s-ok{background:var(--ok)} .bsq.s-bad{background:var(--bad)}
+.bsq.s-na{background:transparent; border-style:dashed}
+
+.copyid{border:0;background:none;cursor:pointer;color:var(--faint);padding:0 0 0 5px;font-size:11px}
+.copyid:hover{color:var(--accent)}
+
+/* ---------- drawer ---------- */
+.scrim{position:fixed; inset:0; background:rgba(10,18,18,.42); z-index:80; opacity:0; pointer-events:none; transition:opacity .16s}
+.scrim.on{opacity:1; pointer-events:auto}
+.drawer{
+  position:fixed; top:0; right:0; bottom:0; width:min(520px,100%); z-index:90;
+  background:var(--surface); border-left:1px solid var(--border); box-shadow:var(--shadow);
+  transform:translateX(100%); visibility:hidden;
+  transition:transform .18s cubic-bezier(.4,0,.2,1), visibility 0s .18s;
+  display:flex; flex-direction:column;
+}
+.drawer.on{transform:none; visibility:visible; transition:transform .18s cubic-bezier(.4,0,.2,1), visibility 0s 0s}
+.dhead{
+  display:flex; align-items:center; gap:10px; padding:13px 16px;
+  border-bottom:1px solid var(--border); flex-shrink:0;
+}
+.dhead .t{flex:1; min-width:0}
+.dhead .t b{display:block; font-size:14.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.dhead .t small{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--accent)}
+.dbody{overflow-y:auto; padding:16px; flex:1}
+.dfoot{padding:11px 16px; border-top:1px solid var(--border); display:flex; gap:8px; align-items:center; flex-shrink:0}
+
+fieldset{border:0; padding:0; margin:0 0 20px}
+legend{
+  font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--faint);
+  font-weight:600; padding:0 0 8px; width:100%; border-bottom:1px solid var(--border); margin-bottom:11px;
+}
+.grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.grid.g3{grid-template-columns:1fr 1fr 1fr}
+.f{display:flex; flex-direction:column; gap:4px}
+.f.full{grid-column:1/-1}
+.f label{font-size:11.5px; color:var(--muted); font-weight:500}
+.f input,.f select,.f textarea{
+  border:1px solid var(--border2); background:var(--surface2); border-radius:6px;
+  padding:6px 9px; font-size:13.5px; width:100%;
+}
+.f textarea{resize:vertical; min-height:70px; line-height:1.5}
+.f input:focus,.f select:focus,.f textarea:focus{background:var(--surface); border-color:var(--accent)}
+.f .hint{font-size:11px; color:var(--faint)}
+.calc{
+  background:var(--surface3); border:1px dashed var(--border2); border-radius:6px;
+  padding:6px 9px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:13.5px;
+}
+
+.checkrow{display:flex; align-items:center; gap:10px; padding:5px 0}
+.checkrow span{flex:1; font-size:13.5px}
+.checkrow select{
+  width:142px; flex-shrink:0; border:1px solid var(--border2); border-radius:6px;
+  padding:5px 8px; font-size:12.5px; font-weight:600; cursor:pointer;
+}
+
+/* ---------- guide ---------- */
+.guide{max-width:760px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:24px 26px}
+.guide h3{font-size:14px; margin:26px 0 8px; letter-spacing:-.01em}
+.guide h3:first-child{margin-top:0}
+.guide p{color:var(--muted); margin:0 0 10px; max-width:64ch}
+.guide ul{margin:0 0 10px; padding-left:19px; color:var(--muted)}
+.guide li{margin-bottom:5px}
+.guide code{
+  font-family:'IBM Plex Mono',monospace; font-size:12.5px; background:var(--surface3);
+  padding:1px 5px; border-radius:4px; color:var(--text);
+}
+.guide .rule{background:var(--accent-soft); border-left:3px solid var(--accent); padding:11px 14px; border-radius:0 6px 6px 0; margin:12px 0}
+.guide .rule p{color:var(--text); margin:0}
+.gtable{width:100%; border-collapse:collapse; margin:8px 0 14px; font-size:13px}
+.gtable td{padding:5px 9px; border-bottom:1px solid var(--border); vertical-align:top}
+.gtable td:first-child{width:150px}
+
+@media(max-width:720px){
+  .top{gap:12px; padding:0 12px}
+  .brand span{display:none}
+  main{padding:12px 12px 70px}
+  .grid,.grid.g3{grid-template-columns:1fr}
+}
+</style>
+
+<script id="kl-state" type="application/json">{"v":1,"ofertas":[],"levas":[],"criativos":[]}</script>
+
+<div id="app"></div>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true"></aside>
+
+<script>
+(function(){
+"use strict";
+
+/* Snapshot of the served document, captured before any render. */
+var PRISTINE = "<!doctype html>\n" + document.documentElement.outerHTML;
+
+/* ---------------- constants ---------------- */
+var BUILD_STEPS = [
+  ["research","Research"],
+  ["entregavel","Entregável"],
+  ["checkout","Checkout"],
+  ["obEntregavel","O.B + Entregável"],
+  ["app","App"],
+  ["backRedirect","Back-Redirect"]
+];
+var ST_BUILD = ["A FAZER","FAZENDO","EM REVISÃO","APROVADO","BLOQUEADO","N/A"];
+var ST_PROD  = ["A FAZER","FAZENDO","EM REVISÃO","APROVADO","BLOQUEADO"];
+var ST_TRAF  = ["A FAZER","PROGRAMADO","EM TESTE","LIDO"];
+var ST_VER_O = ["EM TESTE","APROVADO → FASE 2","REPESCAGEM","MORTA"];
+var ST_VER_C = ["VALIDADO","POTENCIAL","MORTO","LATERALIZADO"];
+var PAISES = ["BR","AR","MX","CO","CL","PE","EC","ES","PT","US","IT"];
+var FORMATOS = ["UGC","Depoimento","Slideshow","VSL curta","Motion/IA","Screen record","Foto estática","Carrossel","Outro"];
+
+var TONE = {
+  "A FAZER":"idle","FAZENDO":"info","EM REVISÃO":"warn","APROVADO":"ok","BLOQUEADO":"bad","N/A":"idle",
+  "PROGRAMADO":"info","EM TESTE":"warn","LIDO":"ok",
+  "APROVADO → FASE 2":"ok","REPESCAGEM":"warn","MORTA":"bad",
+  "VALIDADO":"ok","POTENCIAL":"warn","MORTO":"bad","LATERALIZADO":"info"
+};
+function tone(s){ return TONE[s] || "idle"; }
+
+/* ---------------- state ---------------- */
+var state;
+try{ state = JSON.parse(document.getElementById("kl-state").textContent); }
+catch(e){ state = {v:1,ofertas:[],levas:[],criativos:[]}; }
+state.ofertas = state.ofertas || []; state.levas = state.levas || []; state.criativos = state.criativos || [];
+
+var view = "ofertas";
+var filters = {ofertas:"", levas:"", criativos:"", vencedores:""};
+var levaOferta = "", criOferta = "";
+var drawerCtx = null;
+
+/* ---------------- persistence ---------------- */
+var ns = null, nsReady = false, readOnly = false, dirty = false, saving = false, saveErr = "", timer = null;
+
+if (window.claude && typeof window.claude.use === "function"){
+  window.claude.use("artifact").then(function(a){
+    ns = a; nsReady = true; paintSave();
+    if (dirty) save();
+  })["catch"](function(){ nsReady = true; paintSave(); });
+} else { nsReady = true; }
+
+var TAG_OPEN  = "<scr" + "ipt id=\"kl-state\" type=\"application/json\">";
+var TAG_CLOSE = "</scr" + "ipt>";
+var STATE_RE  = new RegExp("<scr" + "ipt id=\"kl-state\"[^>]*>[\\s\\S]*?</scr" + "ipt>");
+
+function encodeState(){
+  return JSON.stringify(state)
+    .replace(/</g, "\\u003c")
+    .replace(/[\u007f-\uffff]/g, function(c){
+      return "\\u" + ("000" + c.charCodeAt(0).toString(16)).slice(-4);
+    });
+}
+function buildDoc(){
+  var payload = TAG_OPEN + encodeState() + TAG_CLOSE;
+  if (!STATE_RE.test(PRISTINE)) throw new Error("bloco de estado não encontrado");
+  return PRISTINE.replace(STATE_RE, function(){ return payload; });
+}
+function markDirty(){
+  dirty = true; saveErr = ""; paintSave();
+  clearTimeout(timer); timer = setTimeout(save, 3500);
+}
+function save(){
+  clearTimeout(timer);
+  if (saving || !dirty) return;
+  if (!ns){
+    if (!nsReady){ timer = setTimeout(save, 700); return; }
+    saveErr = "sem salvamento nesta janela"; paintSave(); return;
+  }
+  saving = true; paintSave();
+  ns.publish(buildDoc()).then(function(){
+    dirty = false; saveErr = "";
+  })["catch"](function(err){
+    var code = err && err.code;
+    if (code === "not_granted" || code === "not_writer"){ readOnly = true; saveErr = "somente leitura"; }
+    else if (code === "conflict"){ saveErr = "outra pessoa salvou antes"; }
+    else { saveErr = (err && err.message) || "falha ao salvar"; }
+  }).then(function(){ saving = false; paintSave(); });
+}
+window.addEventListener("beforeunload", function(e){
+  if (dirty){ e.preventDefault(); e.returnValue = ""; }
+});
+
+/* ---------------- helpers ---------------- */
+function h(s){
+  return String(s == null ? "" : s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+var BRL = new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0});
+function money(v){ var n = Number(v); return isFinite(n) && v !== "" && v != null ? BRL.format(n) : "—"; }
+function num(v,d){ var n = Number(v); return isFinite(n) && v !== "" && v != null ? n.toFixed(d == null ? 2 : d) : "—"; }
+function addDays(iso,d){
+  if(!iso) return "";
+  var p = iso.split("-"); if(p.length !== 3) return "";
+  var dt = new Date(Number(p[0]), Number(p[1])-1, Number(p[2]));
+  dt.setDate(dt.getDate()+d);
+  return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0");
+}
+function br(iso){ if(!iso) return "—"; var p = iso.split("-"); return p.length===3 ? p[2]+"/"+p[1] : "—"; }
+function pad(n){ return String(n).padStart(2,"0"); }
+function pill(s){ return '<span class="pill p-'+tone(s)+'">'+h(s)+'</span>'; }
+function pillsel(val, opts, kind, id){
+  var o = opts.map(function(x){ return '<option'+(x===val?" selected":"")+'>'+h(x)+'</option>'; }).join("");
+  return '<select class="pillsel p-'+tone(val)+'" data-inline="'+kind+'" data-id="'+h(id)+'">'+o+'</select>';
+}
+function opts(list, val){
+  return list.map(function(x){ return '<option value="'+h(x)+'"'+(x===val?" selected":"")+'>'+h(x)+'</option>'; }).join("");
+}
+function byId(list,id){ for(var i=0;i<list.length;i++) if(list[i].id===id) return list[i]; return null; }
+function lucro(o){
+  var f = Number(o.faturamento), i = Number(o.investido);
+  if(!isFinite(f) || !isFinite(i) || (o.faturamento==="" && o.investido==="")) return null;
+  return (f||0) - (i||0);
+}
+function roas(o){
+  var f = Number(o.faturamento), i = Number(o.investido);
+  return (isFinite(f) && isFinite(i) && i > 0) ? f/i : null;
+}
+function levasDe(oid){ return state.levas.filter(function(l){ return l.ofertaId === oid; }); }
+function crisDe(lid){ return state.criativos.filter(function(c){ return c.levaId === lid; }); }
+
+/* ---------------- render: save indicator ---------------- */
+function paintSave(){
+  var el = document.getElementById("saveState");
+  if(!el) return;
+  var cls = "dot", txt;
+  if (saveErr){ cls += " err"; txt = saveErr; }
+  else if (saving){ cls += " dirty"; txt = "salvando…"; }
+  else if (dirty){ cls += " dirty"; txt = "não salvo"; }
+  else if (!nsReady){ cls += " dirty"; txt = "conectando…"; }
+  else if (!ns){ cls += " err"; txt = "sem salvamento"; }
+  else txt = "salvo";
+  el.innerHTML = '<span class="'+cls+'"></span><small>'+h(txt)+'</small>' +
+    (dirty && !saving ? '<button class="btn sm" data-act="save-now">Salvar</button>' : '');
+}
+
+/* ---------------- render: shell ---------------- */
+function render(){
+  var counts = {ofertas:state.ofertas.length, levas:state.levas.length, criativos:state.criativos.length,
+                vencedores:state.criativos.filter(function(c){return c.veredito==="VALIDADO";}).length};
+  var tabs = [["ofertas","Fase 1 · Ofertas"],["levas","Fase 2 · Levas"],["criativos","Criativos"],
+              ["vencedores","Vencedores"],["guia","Guia"]];
+  var nav = tabs.map(function(t){
+    var c = counts[t[0]];
+    return '<button class="tab" role="tab" aria-selected="'+(view===t[0])+'" data-view="'+t[0]+'">'+t[1]+
+      (c!=null?'<span class="cnt">'+c+'</span>':'')+'</button>';
+  }).join("");
+
+  var body =
+    view==="ofertas" ? viewOfertas() :
+    view==="levas" ? viewLevas() :
+    view==="criativos" ? viewCriativos() :
+    view==="vencedores" ? viewVencedores() : viewGuia();
+
+  var warn = "";
+  if (nsReady && !ns) warn = '<div class="banner"><b>Atenção:</b> esta janela não conseguiu conectar ao salvamento compartilhado. O que você editar aqui <b>não será salvo</b>. Recarregue a página; se persistir, abra pelo link do artifact.</div>';
+  else if (readOnly) warn = '<div class="banner"><b>Somente leitura:</b> você não tem permissão de edição neste Lab. Peça ao Kaian pra te dar acesso de editor.</div>';
+
+  document.getElementById("app").innerHTML =
+    '<header class="top">' +
+      '<div class="brand"><b>KAIAN LAB</b><span>Esteira</span></div>' +
+      '<nav role="tablist">'+nav+'</nav>' +
+      '<div class="saveState" id="saveState"></div>' +
+    '</header>' +
+    '<main>'+warn+body+'</main>';
+  paintSave();
+}
+
+/* ---------------- view: ofertas ---------------- */
+function viewOfertas(){
+  var f1 = state.ofertas.filter(function(o){ return (o.fase||1)==1; }).length;
+  var f2 = state.ofertas.filter(function(o){ return (o.fase||1)==2; }).length;
+  var inv = 0, fat = 0;
+  state.ofertas.forEach(function(o){ inv += Number(o.investido)||0; fat += Number(o.faturamento)||0; });
+  var luc = fat - inv;
+  var rg = inv > 0 ? (fat/inv) : null;
+
+  var kpis =
+    kpi("Em Fase 1", f1) + kpi("Em Fase 2", f2) +
+    kpi("Investido", money(inv)) + kpi("Faturado", money(fat)) +
+    kpi("Lucro", money(luc), luc>0?"pos":(luc<0?"neg":"")) +
+    kpi("ROAS geral", rg==null?"—":num(rg));
+
+  var q = filters.ofertas.toLowerCase();
+  var rows = state.ofertas.filter(function(o){
+    return !q || (o.id+" "+o.nome+" "+(o.responsavel||"")).toLowerCase().indexOf(q) >= 0;
+  });
+
+  var tb = rows.map(function(o){
+    var l = lucro(o), r = roas(o);
+    var squares = BUILD_STEPS.map(function(s){
+      var st = (o.build && o.build[s[0]]) || "A FAZER";
+      var cl = st==="N/A" ? "s-na" : (st==="A FAZER" ? "" : "s-"+tone(st));
+      return '<span class="bsq '+cl+'" title="'+h(s[1]+": "+st)+'"></span>';
+    }).join("");
+    return '<tr data-open="oferta" data-id="'+h(o.id)+'">' +
+      '<td class="id">'+h(o.id)+'</td>' +
+      '<td class="name">'+h(o.nome||"—")+'</td>' +
+      '<td class="txt">'+h(o.responsavel||"—")+'</td>' +
+      '<td><span class="buildbar">'+squares+'</span></td>' +
+      '<td class="n">'+br(o.dataInicio)+'</td>' +
+      '<td class="n">'+br(addDays(o.dataInicio,5))+'</td>' +
+      '<td class="n">'+br(o.dataFinal)+'</td>' +
+      '<td class="n">'+money(o.investido)+'</td>' +
+      '<td class="n '+(l>0?"pos":(l<0?"neg":""))+'">'+(l==null?"—":money(l))+'</td>' +
+      '<td class="n">'+(r==null?"—":num(r))+'</td>' +
+      '<td>'+pill(o.veredito||"EM TESTE")+'</td>' +
+    '</tr>';
+  }).join("");
+
+  var table = rows.length ? '<div class="twrap with-kpis"><table><thead><tr>' +
+    ["ID","Oferta","Resp.","Build","Início","Leitura","Fim","Investido","Lucro","ROAS","Veredito"]
+      .map(function(t){return "<th>"+t+"</th>";}).join("") +
+    '</tr></thead><tbody>'+tb+'</tbody></table></div>'
+    : emptyState("Nenhuma oferta ainda.","Cadastre a primeira oferta em modelagem.","new-oferta","Nova oferta");
+
+  return '<div class="kpis">'+kpis+'</div>' +
+    '<div class="toolbar"><h2>Fase 1 — Validação &amp; Modelagem</h2><div class="sp"></div>' +
+      '<input class="search" data-filter="ofertas" placeholder="Buscar oferta…" value="'+h(filters.ofertas)+'">' +
+      '<button class="btn" data-act="csv-ofertas">CSV</button>' +
+      '<button class="btn primary" data-act="new-oferta">+ Nova oferta</button></div>' + table;
+}
+function kpi(l,v,cls){ return '<div class="kpi"><div class="lbl">'+h(l)+'</div><div class="val '+(cls||"")+'">'+h(v)+'</div></div>'; }
+function emptyState(t,s,act,btn){
+  return '<div class="twrap"><div class="empty"><p><b>'+h(t)+'</b><br>'+h(s)+'</p>' +
+    (act?'<button class="btn primary" data-act="'+act+'">'+h(btn)+'</button>':'')+'</div></div>';
+}
+
+/* ---------------- view: levas ---------------- */
+function viewLevas(){
+  var q = filters.levas.toLowerCase();
+  var rows = state.levas.filter(function(l){
+    if (levaOferta && l.ofertaId !== levaOferta) return false;
+    return !q || (l.id+" "+(l.angulo||"")).toLowerCase().indexOf(q) >= 0;
+  }).sort(function(a,b){ return (b.dataEntrega||"").localeCompare(a.dataEntrega||""); });
+
+  var f2 = state.ofertas.filter(function(o){ return (o.fase||1)==2 || o.veredito==="APROVADO → FASE 2"; });
+
+  var tb = rows.map(function(l){
+    var o = byId(state.ofertas, l.ofertaId);
+    var cris = crisDe(l.id);
+    var val = cris.filter(function(c){ return c.veredito==="VALIDADO"; }).length;
+    return '<tr>' +
+      '<td class="id" data-open="leva" data-id="'+h(l.id)+'" style="cursor:pointer">'+h(l.id)+'</td>' +
+      '<td class="txt">'+h(o?o.nome:"—")+'</td>' +
+      '<td class="n">'+br(l.dataEntrega)+'</td>' +
+      '<td class="n">'+br(addDays(l.dataEntrega,2))+'</td>' +
+      '<td class="n">'+h(l.qtd||20)+'</td>' +
+      '<td class="txt">'+h(l.angulo||"—")+'</td>' +
+      '<td>'+pillsel(l.copy||"A FAZER", ST_PROD, "leva.copy", l.id)+'</td>' +
+      '<td>'+pillsel(l.edicao||"A FAZER", ST_PROD, "leva.edicao", l.id)+'</td>' +
+      '<td>'+pillsel(l.trafego||"A FAZER", ST_TRAF, "leva.trafego", l.id)+'</td>' +
+      '<td class="n">'+cris.length+(val?' <span class="pill p-ok">'+val+' val</span>':'')+'</td>' +
+      '<td><button class="btn sm" data-act="new-criativo" data-id="'+h(l.id)+'">+ criativo</button></td>' +
+    '</tr>';
+  }).join("");
+
+  var table = rows.length ? '<div class="twrap"><table><thead><tr>' +
+    ["ID Leva","Oferta","Entrega","Leitura","Qtd","Ângulo da leva","Copy","Edição","Tráfego","Que gastou",""]
+      .map(function(t){return "<th>"+t+"</th>";}).join("") +
+    '</tr></thead><tbody>'+tb+'</tbody></table></div>'
+    : emptyState(
+        f2.length ? "Nenhuma leva ainda." : "Nenhuma oferta em Fase 2.",
+        f2.length ? "Cada leva é um lote de ~20 criativos entregue a cada 2 dias." : "Marque uma oferta como APROVADO → FASE 2 na aba Fase 1.",
+        f2.length ? "new-leva" : null, "Nova leva");
+
+  var sel = '<select class="selfilter" data-ofilter="leva"><option value="">Todas as ofertas</option>' +
+    state.ofertas.map(function(o){
+      return '<option value="'+h(o.id)+'"'+(levaOferta===o.id?" selected":"")+'>'+h(o.id+" · "+(o.nome||""))+'</option>';
+    }).join("") + '</select>';
+
+  return '<div class="toolbar"><h2>Fase 2 — Levas de criativo</h2><div class="sp"></div>' + sel +
+    '<input class="search" data-filter="levas" placeholder="Buscar leva…" value="'+h(filters.levas)+'">' +
+    '<button class="btn" data-act="csv-levas">CSV</button>' +
+    '<button class="btn primary" data-act="new-leva"'+(f2.length?"":" disabled")+'>+ Nova leva</button></div>' + table;
+}
+
+/* ---------------- view: criativos ---------------- */
+function viewCriativos(){ return criativoTable(false); }
+function viewVencedores(){ return criativoTable(true); }
+
+function criativoTable(onlyWin){
+  var key = onlyWin ? "vencedores" : "criativos";
+  var q = filters[key].toLowerCase();
+  var rows = state.criativos.filter(function(c){
+    if (onlyWin && c.veredito !== "VALIDADO") return false;
+    var l = byId(state.levas, c.levaId);
+    if (criOferta && (!l || l.ofertaId !== criOferta)) return false;
+    return !q || (c.id+" "+(c.angulo||"")+" "+(c.hook||"")+" "+(c.formato||"")+" "+(c.anguloHook||"")).toLowerCase().indexOf(q) >= 0;
+  }).sort(function(a,b){ return String(b.id).localeCompare(String(a.id)); });
+
+  var tb = rows.map(function(c){
+    var l = byId(state.levas, c.levaId);
+    var o = l ? byId(state.ofertas, l.ofertaId) : null;
+    return '<tr>' +
+      '<td class="id" data-open="criativo" data-id="'+h(c.id)+'" style="cursor:pointer">'+h(c.id) +
+        '<button class="copyid" data-copy="'+h(c.id)+'" title="Copiar ID pro nome do anúncio">⧉</button></td>' +
+      '<td class="txt">'+h(o?o.nome:"—")+'</td>' +
+      '<td class="txt">'+h(c.angulo||"—")+'</td>' +
+      '<td class="txt">'+h(c.anguloHook||"—")+'</td>' +
+      '<td class="txt">'+h(c.hook||"—")+'</td>' +
+      '<td class="txt">'+h(c.formato||"—")+'</td>' +
+      '<td class="txt">'+h(c.body||"—")+'</td>' +
+      '<td class="id">'+h(c.pai||"—")+'</td>' +
+      '<td class="n">'+money(c.gasto)+'</td>' +
+      '<td class="n">'+money(c.cpa)+'</td>' +
+      '<td class="n">'+(c.roas?num(c.roas):"—")+'</td>' +
+      '<td>'+pillsel(c.veredito||"VALIDADO", ST_VER_C, "cri.veredito", c.id)+'</td>' +
+    '</tr>';
+  }).join("");
+
+  var heads = ["ID (= nome do anúncio)","Oferta","Ângulo","Ângulo do Hook","Hook","Formato","Body","Pai","Gasto","CPA","ROAS","Veredito"];
+  var table = rows.length ? '<div class="twrap"><table><thead><tr>' +
+    heads.map(function(t){return "<th>"+t+"</th>";}).join("") +
+    '</tr></thead><tbody>'+tb+'</tbody></table></div>'
+    : emptyState(
+        onlyWin ? "Nenhum vencedor ainda." : "Nenhum criativo lançado ainda.",
+        onlyWin ? "Criativos marcados como VALIDADO aparecem aqui, com ângulo, hook e formato."
+                : "Só entra aqui criativo que gastou. Use o botão “+ criativo” na leva.",
+        null, null);
+
+  var sel = '<select class="selfilter" data-ofilter="cri"><option value="">Todas as ofertas</option>' +
+    state.ofertas.map(function(o){
+      return '<option value="'+h(o.id)+'"'+(criOferta===o.id?" selected":"")+'>'+h(o.id+" · "+(o.nome||""))+'</option>';
+    }).join("") + '</select>';
+
+  var head = onlyWin
+    ? '<h2>Biblioteca de Vencedores</h2>'
+    : '<h2>Criativos que gastaram</h2>';
+
+  return '<div class="toolbar">'+head+'<div class="sp"></div>' + sel +
+    '<input class="search" data-filter="'+key+'" placeholder="Buscar ângulo, hook, formato…" value="'+h(filters[key])+'">' +
+    '<button class="btn" data-act="csv-criativos">CSV</button></div>' + table;
+}
+
+/* ---------------- view: guia ---------------- */
+function viewGuia(){
+  return '<div class="guide">' +
+  '<h3>Como o Lab funciona</h3>' +
+  '<p>Três tabelas ligadas. Uma <b>oferta</b> entra na Fase 1, é testada, e se aprovar vira Fase 2. Na Fase 2 ela recebe <b>levas</b> de ~20 criativos a cada 2 dias. Cada leva gera <b>criativos</b> — e só entra na tabela o criativo que efetivamente gastou.</p>' +
+
+  '<div class="rule"><p><b>Regra inegociável:</b> o ID do criativo é o nome do anúncio no Meta. O Lab gera o ID; você copia (botão ⧉) e cola como nome do anúncio. Se isso não for respeitado, ninguém consegue casar resultado com criativo e a base morre em um mês.</p></div>' +
+
+  '<h3>Convenção de ID</h3>' +
+  '<table class="gtable">' +
+  '<tr><td><code>ART-BR-01</code></td><td>Oferta — 3 letras + país + sequencial. Nunca muda, mesmo que o nome mude.</td></tr>' +
+  '<tr><td><code>ART-BR-01-L07</code></td><td>Leva 07 daquela oferta. Gerado automático.</td></tr>' +
+  '<tr><td><code>ART-BR-01-L07-C03</code></td><td>Criativo 03 da leva 07. Este é o nome do anúncio.</td></tr>' +
+  '</table>' +
+
+  '<h3>Status de build e produção</h3>' +
+  '<table class="gtable">' +
+  '<tr><td>'+pill("A FAZER")+'</td><td>Ninguém começou.</td></tr>' +
+  '<tr><td>'+pill("FAZENDO")+'</td><td>Em execução agora. Existe pra o meio não ficar invisível.</td></tr>' +
+  '<tr><td>'+pill("EM REVISÃO")+'</td><td>Pronto, esperando aprovação do Kaian.</td></tr>' +
+  '<tr><td>'+pill("APROVADO")+'</td><td>Fechado.</td></tr>' +
+  '<tr><td>'+pill("BLOQUEADO")+'</td><td>Parado esperando algo externo — conta, gateway, terceiro. É o status que salva dinheiro.</td></tr>' +
+  '<tr><td>'+pill("N/A")+'</td><td>Essa oferta não tem essa etapa.</td></tr>' +
+  '</table>' +
+
+  '<h3>Tráfego (na leva)</h3>' +
+  '<p>'+pill("A FAZER")+' → '+pill("PROGRAMADO")+' → '+pill("EM TESTE")+' → '+pill("LIDO")+'</p>' +
+  '<p><b>LIDO</b> não quer dizer campanha parada. Quer dizer que o teste foi lido e o resultado já está registrado.</p>' +
+
+  '<h3>Janelas de leitura</h3>' +
+  '<ul>' +
+  '<li><b>Fase 1: 5 dias.</b> A data de leitura é calculada sozinha a partir do início. A espera existe pra medir o orderbump no funil — por isso o <b>Take Rate do OB</b> é campo obrigatório na prática: sem ele, a espera não produziu nada.</li>' +
+  '<li><b>Fase 2: 2 dias.</b> Calculada a partir da data de entrega da leva.</li>' +
+  '</ul>' +
+
+  '<h3>Veredito da oferta</h3>' +
+  '<table class="gtable">' +
+  '<tr><td>'+pill("EM TESTE")+'</td><td>Rodando, ainda sem decisão.</td></tr>' +
+  '<tr><td>'+pill("APROVADO → FASE 2")+'</td><td>Passou. Libera criar levas.</td></tr>' +
+  '<tr><td>'+pill("REPESCAGEM")+'</td><td>Morreu por execução (checkout torto, criativo fraco), não por falta de mercado. Volta depois.</td></tr>' +
+  '<tr><td>'+pill("MORTA")+'</td><td>Não tem mercado. Não volta.</td></tr>' +
+  '</table>' +
+
+  '<h3>Veredito do criativo</h3>' +
+  '<p>Todo criativo que está na tabela <b>já gastou</b> — é esse o filtro de entrada. O veredito diz o que fazer com ele:</p>' +
+  '<table class="gtable">' +
+  '<tr><td>'+pill("VALIDADO")+'</td><td>Padrão. Gastou e performou. Vai pra Biblioteca de Vencedores.</td></tr>' +
+  '<tr><td>'+pill("POTENCIAL")+'</td><td>Sinal bom mas ainda não conclusivo. Merece mais budget ou reteste.</td></tr>' +
+  '<tr><td>'+pill("MORTO")+'</td><td>Gastou e não pagou.</td></tr>' +
+  '<tr><td>'+pill("LATERALIZADO")+'</td><td>Já virou base pra novas variações — os filhos apontam pra ele no campo <b>Pai</b>.</td></tr>' +
+  '</table>' +
+
+  '<h3>Por que ângulo, hook e formato importam</h3>' +
+  '<p>Sem esses campos você aprende "o criativo 3 ganhou" — informação que morre naquela leva. Com eles você aprende "hook de pergunta + depoimento + ângulo financeiro ganha nesse mercado", que é o que se leva pra próxima oferta. A <b>Biblioteca de Vencedores</b> é o acúmulo disso, e é o único ativo aqui que compõe com o tempo.</p>' +
+
+  '<h3>Salvamento</h3>' +
+  '<p>Toda edição salva sozinha ~3s depois, ou no botão <b>Salvar</b>. Quando alguém salva, as janelas abertas recarregam pra versão nova. Se duas pessoas salvarem ao mesmo tempo, uma das edições se perde — então, na prática: <b>evitem editar a mesma linha ao mesmo tempo</b>.</p>' +
+  '</div>';
+}
+
+/* ---------------- drawer ---------------- */
+function closeDrawer(){
+  drawerCtx = null;
+  document.getElementById("drawer").classList.remove("on");
+  document.getElementById("drawer").setAttribute("aria-hidden","true");
+  document.getElementById("scrim").classList.remove("on");
+  render();
+}
+function openDrawer(kind,id){
+  drawerCtx = {kind:kind,id:id};
+  var d = document.getElementById("drawer");
+  d.innerHTML = kind==="oferta" ? drawerOferta(id) : kind==="leva" ? drawerLeva(id) : drawerCriativo(id);
+  d.classList.add("on"); d.setAttribute("aria-hidden","false");
+  document.getElementById("scrim").classList.add("on");
+}
+function dShell(title,sub,inner,delAct,delId){
+  return '<div class="dhead"><div class="t"><b>'+h(title)+'</b><small>'+h(sub)+'</small></div>' +
+    '<button class="btn ghost" data-act="close-drawer">Fechar</button></div>' +
+    '<div class="dbody">'+inner+'</div>' +
+    '<div class="dfoot"><button class="btn primary" data-act="close-drawer">Concluir</button>' +
+    '<div style="flex:1"></div>' +
+    '<button class="btn ghost" data-act="'+delAct+'" data-id="'+h(delId)+'" style="color:var(--bad)">Excluir</button></div>';
+}
+function fld(label,kind,id,field,type,value,hint){
+  var extra = type==="number" ? ' step="any"' : "";
+  return '<div class="f"><label>'+h(label)+'</label>' +
+    '<input type="'+type+'"'+extra+' data-edit="'+kind+'" data-id="'+h(id)+'" data-field="'+field+'" value="'+h(value==null?"":value)+'">' +
+    (hint?'<span class="hint">'+h(hint)+'</span>':'') + '</div>';
+}
+function sel(label,kind,id,field,list,value){
+  return '<div class="f"><label>'+h(label)+'</label>' +
+    '<select data-edit="'+kind+'" data-id="'+h(id)+'" data-field="'+field+'">'+opts(list,value)+'</select></div>';
+}
+function area(label,kind,id,field,value,hint){
+  return '<div class="f full"><label>'+h(label)+'</label>' +
+    '<textarea data-edit="'+kind+'" data-id="'+h(id)+'" data-field="'+field+'">'+h(value||"")+'</textarea>' +
+    (hint?'<span class="hint">'+h(hint)+'</span>':'')+'</div>';
+}
+function calc(label,val,cls){
+  return '<div class="f"><label>'+h(label)+'</label><div class="calc '+(cls||"")+'">'+h(val)+'</div></div>';
+}
+
+function drawerOferta(id){
+  var o = byId(state.ofertas,id); if(!o) return "";
+  var l = lucro(o), r = roas(o);
+  var checks = BUILD_STEPS.map(function(s){
+    var v = (o.build && o.build[s[0]]) || "A FAZER";
+    return '<div class="checkrow"><span>'+h(s[1])+'</span>' +
+      '<select class="p-'+tone(v)+'" data-build="'+h(o.id)+'" data-step="'+s[0]+'">'+opts(ST_BUILD,v)+'</select></div>';
+  }).join("");
+
+  var inner =
+    '<fieldset><legend>Identificação</legend><div class="grid">' +
+      fld("Nome da oferta","oferta",id,"nome","text",o.nome) +
+      sel("País","oferta",id,"pais",PAISES,o.pais) +
+      fld("Responsável","oferta",id,"responsavel","text",o.responsavel) +
+      sel("Fase atual","oferta",id,"fase",["1","2"],String(o.fase||1)) +
+      fld("Link do Drive","oferta",id,"linkDrive","url",o.linkDrive) +
+      fld("Link do checkout","oferta",id,"linkCheckout","url",o.linkCheckout) +
+    '</div></fieldset>' +
+
+    '<fieldset><legend>Build</legend>'+checks+'</fieldset>' +
+
+    '<fieldset><legend>Janela de teste</legend><div class="grid g3">' +
+      fld("Início","oferta",id,"dataInicio","date",o.dataInicio) +
+      calc("Leitura (+5d)", br(addDays(o.dataInicio,5))) +
+      fld("Final","oferta",id,"dataFinal","date",o.dataFinal) +
+    '</div></fieldset>' +
+
+    '<fieldset><legend>Resultado</legend><div class="grid">' +
+      fld("Investido (R$)","oferta",id,"investido","number",o.investido) +
+      fld("Faturamento (R$)","oferta",id,"faturamento","number",o.faturamento) +
+      fld("Ticket médio (R$)","oferta",id,"ticketMedio","number",o.ticketMedio) +
+      fld("Take rate do OB (%)","oferta",id,"takeRateOB","number",o.takeRateOB,"O motivo dos 5 dias de espera.") +
+      calc("Lucro", l==null?"—":money(l), l>0?"pos":(l<0?"neg":"")) +
+      calc("ROAS", r==null?"—":num(r)) +
+    '</div></fieldset>' +
+
+    '<fieldset><legend>Decisão</legend><div class="grid">' +
+      sel("Veredito","oferta",id,"veredito",ST_VER_O,o.veredito||"EM TESTE") +
+    '</div><div class="grid" style="margin-top:10px">' +
+      area("Aprendizado","oferta",id,"aprendizado",o.aprendizado,"O que essa oferta ensinou. É isso que volta pra mineração.") +
+      area("Observações","oferta",id,"obs",o.obs) +
+    '</div></fieldset>' +
+
+    '<fieldset><legend>Documentação da oferta</legend><div class="grid">' +
+      area("Hub","oferta",id,"doc",o.doc,"Research, avatar, mecanismo, promessa, estrutura do funil, links, senhas de painel — tudo que alguém precisa pra assumir essa oferta sozinho.") +
+    '</div></fieldset>';
+
+  return dShell(o.nome||"Sem nome", o.id, inner, "del-oferta", id);
+}
+
+function drawerLeva(id){
+  var l = byId(state.levas,id); if(!l) return "";
+  var o = byId(state.ofertas,l.ofertaId);
+  var cris = crisDe(id);
+  var list = cris.length
+    ? '<div class="twrap" style="margin-top:4px"><table><tbody>' + cris.map(function(c){
+        return '<tr><td class="id" data-open="criativo" data-id="'+h(c.id)+'" style="cursor:pointer">'+h(c.id)+'</td>' +
+          '<td class="txt">'+h(c.hook||"—")+'</td><td class="n">'+money(c.gasto)+'</td>' +
+          '<td>'+pill(c.veredito||"VALIDADO")+'</td></tr>';
+      }).join("") + '</tbody></table></div>'
+    : '<p style="color:var(--muted);font-size:13px;margin:2px 0 10px">Nenhum criativo gastou nesta leva ainda.</p>';
+
+  var inner =
+    '<fieldset><legend>Leva</legend><div class="grid">' +
+      calc("Oferta", o ? o.nome : "—") +
+      fld("Data de entrega","leva",id,"dataEntrega","date",l.dataEntrega) +
+      calc("Leitura (+2d)", br(addDays(l.dataEntrega,2))) +
+      fld("Qtd de criativos","leva",id,"qtd","number",l.qtd==null?20:l.qtd) +
+    '</div><div class="grid" style="margin-top:10px">' +
+      area("Ângulo da leva","leva",id,"angulo",l.angulo,"O tema que orienta os 20 criativos deste lote.") +
+    '</div></fieldset>' +
+
+    '<fieldset><legend>Produção</legend><div class="grid g3">' +
+      sel("Copy","leva",id,"copy",ST_PROD,l.copy||"A FAZER") +
+      sel("Edição","leva",id,"edicao",ST_PROD,l.edicao||"A FAZER") +
+      sel("Tráfego","leva",id,"trafego",ST_TRAF,l.trafego||"A FAZER") +
+    '</div></fieldset>' +
+
+    '<fieldset><legend>Criativos que gastaram <span style="float:right;font-weight:400;text-transform:none;letter-spacing:0">' +
+      '<button class="btn sm" data-act="new-criativo" data-id="'+h(id)+'">+ criativo</button></span></legend>' + list + '</fieldset>' +
+
+    '<fieldset><legend>Observações</legend><div class="grid">' + area("","leva",id,"obs",l.obs) + '</div></fieldset>';
+
+  return dShell("Leva "+(l.id.split("-L")[1]||""), l.id, inner, "del-leva", id);
+}
+
+function drawerCriativo(id){
+  var c = byId(state.criativos,id); if(!c) return "";
+  var l = byId(state.levas,c.levaId);
+  var o = l ? byId(state.ofertas,l.ofertaId) : null;
+  var irmaos = state.criativos.filter(function(x){
+    if (x.id === c.id) return false;
+    var xl = byId(state.levas,x.levaId);
+    return xl && l && xl.ofertaId === l.ofertaId;
+  }).map(function(x){ return x.id; });
+
+  var inner =
+    '<fieldset><legend>Identificação</legend><div class="grid">' +
+      calc("Oferta", o ? o.nome : "—") + calc("Leva", c.levaId) +
+    '</div>' +
+    '<div class="f full" style="margin-top:10px"><label>ID = nome do anúncio no Meta</label>' +
+      '<div class="calc" style="display:flex;align-items:center;gap:8px">' +
+        '<span style="flex:1">'+h(c.id)+'</span>' +
+        '<button class="btn sm" data-copy="'+h(c.id)+'">Copiar</button></div></div></fieldset>' +
+
+    '<fieldset><legend>Anatomia</legend><div class="grid">' +
+      fld("Ângulo","criativo",id,"angulo","text",c.angulo,"A dor/desejo que o criativo ataca.") +
+      fld("Ângulo do hook","criativo",id,"anguloHook","text",c.anguloHook,"Por onde o hook entra.") +
+      fld("Hook","criativo",id,"hook","text",c.hook,"A primeira frase/imagem.") +
+      sel("Formato","criativo",id,"formato",[""].concat(FORMATOS),c.formato||"") +
+    '</div><div class="grid" style="margin-top:10px">' +
+      area("Body","criativo",id,"body",c.body,"O corpo do criativo — desenvolvimento, prova, CTA.") +
+    '</div>' +
+    '<div class="grid" style="margin-top:10px">' +
+      '<div class="f"><label>Pai (de qual vencedor saiu)</label>' +
+      '<select data-edit="criativo" data-id="'+h(id)+'" data-field="pai">' +
+      opts([""].concat(irmaos), c.pai||"") + '</select>' +
+      '<span class="hint">Deixe vazio se for criativo original.</span></div>' +
+    '</div></fieldset>' +
+
+    '<fieldset><legend>Resultado</legend><div class="grid g3">' +
+      fld("Gasto (R$)","criativo",id,"gasto","number",c.gasto) +
+      fld("CPA (R$)","criativo",id,"cpa","number",c.cpa) +
+      fld("ROAS","criativo",id,"roas","number",c.roas) +
+    '</div><div class="grid" style="margin-top:10px">' +
+      sel("Veredito","criativo",id,"veredito",ST_VER_C,c.veredito||"VALIDADO") +
+    '</div><div class="grid" style="margin-top:10px">' +
+      area("Observações","criativo",id,"obs",c.obs) +
+    '</div></fieldset>';
+
+  return dShell(c.hook || "Criativo", c.id, inner, "del-criativo", id);
+}
+
+/* ---------------- create ---------------- */
+function novaOferta(){
+  var nome = prompt("Nome da oferta:"); if(!nome) return;
+  var sig = prompt("Sigla de 3 letras (ex: ART):","");
+  if(!sig) return;
+  sig = sig.toUpperCase().replace(/[^A-Z]/g,"").slice(0,3);
+  if(sig.length < 2){ alert("A sigla precisa ter ao menos 2 letras."); return; }
+  var pais = (prompt("País (BR, AR, MX, CO, CL, PE, EC, ES, PT, US, IT):","BR")||"BR").toUpperCase();
+  if(PAISES.indexOf(pais) < 0) pais = "BR";
+  var pre = sig+"-"+pais+"-";
+  var n = state.ofertas.filter(function(o){ return o.id.indexOf(pre)===0; }).length + 1;
+  var o = {
+    id: pre+pad(n), nome:nome, pais:pais, responsavel:"", fase:1,
+    linkDrive:"", linkCheckout:"", doc:"",
+    build:{research:"A FAZER",entregavel:"A FAZER",checkout:"A FAZER",obEntregavel:"A FAZER",app:"A FAZER",backRedirect:"A FAZER"},
+    dataInicio:"", dataFinal:"",
+    investido:"", faturamento:"", ticketMedio:"", takeRateOB:"",
+    veredito:"EM TESTE", aprendizado:"", obs:""
+  };
+  state.ofertas.push(o); markDirty(); render(); openDrawer("oferta",o.id);
+}
+function novaLeva(){
+  var elegiveis = state.ofertas.filter(function(o){ return (o.fase||1)==2 || o.veredito==="APROVADO → FASE 2"; });
+  if(!elegiveis.length){ alert("Nenhuma oferta em Fase 2. Marque o veredito de uma oferta como APROVADO → FASE 2."); return; }
+  var oid = levaOferta && byId(elegiveis,levaOferta) ? levaOferta : null;
+  if(!oid){
+    var msg = "Para qual oferta?\n\n" + elegiveis.map(function(o,i){ return (i+1)+") "+o.id+" — "+o.nome; }).join("\n");
+    var pick = parseInt(prompt(msg,"1"),10);
+    if(!pick || !elegiveis[pick-1]) return;
+    oid = elegiveis[pick-1].id;
+  }
+  var n = levasDe(oid).length + 1;
+  var hoje = new Date();
+  var iso = hoje.getFullYear()+"-"+pad(hoje.getMonth()+1)+"-"+pad(hoje.getDate());
+  var l = {id: oid+"-L"+pad(n), ofertaId:oid, dataEntrega:iso, qtd:20, angulo:"",
+           copy:"A FAZER", edicao:"A FAZER", trafego:"A FAZER", obs:""};
+  state.levas.push(l); markDirty(); render(); openDrawer("leva",l.id);
+}
+function novoCriativo(levaId){
+  var l = byId(state.levas,levaId); if(!l) return;
+  var n = crisDe(levaId).length + 1;
+  var c = {id: levaId+"-C"+pad(n), levaId:levaId, angulo:l.angulo||"", anguloHook:"", hook:"", formato:"", body:"",
+           pai:"", gasto:"", cpa:"", roas:"", veredito:"VALIDADO", obs:""};
+  state.criativos.push(c); markDirty();
+  openDrawer("criativo",c.id);
+}
+
+/* ---------------- csv ---------------- */
+function csvCell(v){ var s = String(v==null?"":v); return /[",;\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }
+function toCsv(head,rows){
+  return [head].concat(rows).map(function(r){ return r.map(csvCell).join(";"); }).join("\n");
+}
+function exportCsv(which){
+  var name, csv;
+  if(which==="ofertas"){
+    name = "kaian-lab-ofertas.csv";
+    csv = toCsv(["ID","Nome","Pais","Responsavel","Fase"].concat(BUILD_STEPS.map(function(s){return s[1];}))
+      .concat(["Inicio","Leitura","Final","Investido","Faturamento","Lucro","ROAS","Ticket Medio","Take Rate OB","Veredito","Aprendizado","Observacoes"]),
+      state.ofertas.map(function(o){
+        var l = lucro(o), r = roas(o);
+        return [o.id,o.nome,o.pais,o.responsavel,o.fase||1]
+          .concat(BUILD_STEPS.map(function(s){ return (o.build&&o.build[s[0]])||"A FAZER"; }))
+          .concat([o.dataInicio,addDays(o.dataInicio,5),o.dataFinal,o.investido,o.faturamento,
+                   l==null?"":l, r==null?"":r.toFixed(2), o.ticketMedio,o.takeRateOB,o.veredito,o.aprendizado,o.obs]);
+      }));
+  } else if(which==="levas"){
+    name = "kaian-lab-levas.csv";
+    csv = toCsv(["ID Leva","Oferta","Nome Oferta","Entrega","Leitura","Qtd","Angulo","Copy","Edicao","Trafego","Criativos que gastaram","Observacoes"],
+      state.levas.map(function(l){
+        var o = byId(state.ofertas,l.ofertaId);
+        return [l.id,l.ofertaId,o?o.nome:"",l.dataEntrega,addDays(l.dataEntrega,2),l.qtd,l.angulo,
+                l.copy,l.edicao,l.trafego,crisDe(l.id).length,l.obs];
+      }));
+  } else {
+    name = "kaian-lab-criativos.csv";
+    csv = toCsv(["ID","Leva","Oferta","Angulo","Angulo do Hook","Hook","Formato","Body","Pai","Gasto","CPA","ROAS","Veredito","Observacoes"],
+      state.criativos.map(function(c){
+        var l = byId(state.levas,c.levaId); var o = l?byId(state.ofertas,l.ofertaId):null;
+        return [c.id,c.levaId,o?o.nome:"",c.angulo,c.anguloHook,c.hook,c.formato,c.body,c.pai,
+                c.gasto,c.cpa,c.roas,c.veredito,c.obs];
+      }));
+  }
+  var data = "﻿" + csv;
+  if (window.claude && window.claude.use){
+    window.claude.use("downloads").then(function(d){
+      if(d) return d.save({filename:name, data:data});
+      fallbackDownload(name,data);
+    })["catch"](function(){ fallbackDownload(name,data); });
+  } else fallbackDownload(name,data);
+}
+function fallbackDownload(name,data){
+  try{
+    var b = new Blob([data],{type:"text/csv;charset=utf-8"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(b); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+  }catch(e){ alert("Não consegui gerar o download nesta janela."); }
+}
+
+/* ---------------- events ---------------- */
+document.addEventListener("click", function(e){
+  var t = e.target;
+
+  var cp = t.closest ? t.closest("[data-copy]") : null;
+  if(cp){
+    e.stopPropagation();
+    var val = cp.getAttribute("data-copy");
+    if(navigator.clipboard) navigator.clipboard.writeText(val);
+    var old = cp.textContent; cp.textContent = "✓";
+    setTimeout(function(){ cp.textContent = old; }, 900);
+    return;
+  }
+
+  var tab = t.closest ? t.closest("[data-view]") : null;
+  if(tab){ view = tab.getAttribute("data-view"); render(); return; }
+
+  var act = t.closest ? t.closest("[data-act]") : null;
+  if(act){
+    var a = act.getAttribute("data-act"), aid = act.getAttribute("data-id");
+    if(a==="new-oferta") novaOferta();
+    else if(a==="new-leva") novaLeva();
+    else if(a==="new-criativo"){ e.stopPropagation(); novoCriativo(aid); }
+    else if(a==="close-drawer") closeDrawer();
+    else if(a==="save-now") save();
+    else if(a==="csv-ofertas") exportCsv("ofertas");
+    else if(a==="csv-levas") exportCsv("levas");
+    else if(a==="csv-criativos") exportCsv("criativos");
+    else if(a==="del-oferta"){
+      var o = byId(state.ofertas,aid);
+      var nl = levasDe(aid).length;
+      if(confirm("Excluir a oferta "+aid+(nl?" e suas "+nl+" leva(s) e criativos":"")+"? Não dá pra desfazer.")){
+        var lids = levasDe(aid).map(function(x){return x.id;});
+        state.criativos = state.criativos.filter(function(c){ return lids.indexOf(c.levaId) < 0; });
+        state.levas = state.levas.filter(function(l){ return l.ofertaId !== aid; });
+        state.ofertas = state.ofertas.filter(function(x){ return x.id !== aid; });
+        markDirty(); closeDrawer();
+      }
+    }
+    else if(a==="del-leva"){
+      if(confirm("Excluir a leva "+aid+" e seus criativos?")){
+        state.criativos = state.criativos.filter(function(c){ return c.levaId !== aid; });
+        state.levas = state.levas.filter(function(l){ return l.id !== aid; });
+        markDirty(); closeDrawer();
+      }
+    }
+    else if(a==="del-criativo"){
+      if(confirm("Excluir o criativo "+aid+"?")){
+        state.criativos = state.criativos.filter(function(c){ return c.id !== aid; });
+        markDirty(); closeDrawer();
+      }
+    }
+    return;
+  }
+
+  var op = t.closest ? t.closest("[data-open]") : null;
+  if(op){ openDrawer(op.getAttribute("data-open"), op.getAttribute("data-id")); return; }
+
+  if(t.id === "scrim") closeDrawer();
+});
+
+document.addEventListener("change", function(e){
+  var t = e.target;
+
+  if(t.hasAttribute("data-inline")){
+    var kind = t.getAttribute("data-inline"), id = t.getAttribute("data-id"), v = t.value;
+    if(kind.indexOf("leva.")===0){
+      var l = byId(state.levas,id); if(l){ l[kind.split(".")[1]] = v; }
+    } else if(kind==="cri.veredito"){
+      var c = byId(state.criativos,id); if(c){ c.veredito = v; }
+    }
+    t.className = "pillsel p-"+tone(v);
+    markDirty();
+    return;
+  }
+
+  if(t.hasAttribute("data-build")){
+    var o = byId(state.ofertas, t.getAttribute("data-build"));
+    if(o){ o.build = o.build || {}; o.build[t.getAttribute("data-step")] = t.value; }
+    t.className = "p-"+tone(t.value);
+    markDirty(); return;
+  }
+
+  if(t.hasAttribute("data-ofilter")){
+    if(t.getAttribute("data-ofilter")==="leva") levaOferta = t.value; else criOferta = t.value;
+    render(); return;
+  }
+});
+
+document.addEventListener("input", function(e){
+  var t = e.target;
+
+  if(t.hasAttribute("data-filter")){
+    filters[t.getAttribute("data-filter")] = t.value;
+    var pos = t.selectionStart;
+    render();
+    var again = document.querySelector('[data-filter="'+t.getAttribute("data-filter")+'"]');
+    if(again){ again.focus(); try{ again.setSelectionRange(pos,pos); }catch(err){} }
+    return;
+  }
+
+  if(t.hasAttribute("data-edit")){
+    var kind = t.getAttribute("data-edit"), id = t.getAttribute("data-id"), f = t.getAttribute("data-field");
+    var list = kind==="oferta" ? state.ofertas : kind==="leva" ? state.levas : state.criativos;
+    var rec = byId(list,id);
+    if(rec){
+      rec[f] = t.value;
+      if(f==="fase") rec.fase = Number(t.value);
+      if(f==="dataInicio"){
+        var c1 = t.closest("fieldset").querySelector(".calc");
+        if(c1) c1.textContent = br(addDays(t.value,5));
+      }
+      if(f==="dataEntrega"){
+        var fs = t.closest("fieldset").querySelectorAll(".calc");
+        if(fs[1]) fs[1].textContent = br(addDays(t.value,2));
+      }
+      if(kind==="oferta" && (f==="investido"||f==="faturamento")){
+        var cs = t.closest("fieldset").querySelectorAll(".calc");
+        var l2 = lucro(rec), r2 = roas(rec);
+        if(cs[0]){ cs[0].textContent = l2==null?"—":money(l2); cs[0].className = "calc "+(l2>0?"pos":(l2<0?"neg":"")); }
+        if(cs[1]) cs[1].textContent = r2==null?"—":num(r2);
+      }
+      markDirty();
+    }
+    return;
+  }
+});
+
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape" && drawerCtx) closeDrawer();
+  if((e.metaKey||e.ctrlKey) && e.key === "s"){ e.preventDefault(); save(); }
+});
+
+render();
+})();
+</script>
