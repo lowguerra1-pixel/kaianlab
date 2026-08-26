@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kaian Lab</title>
+<meta name="description" content="Esteira de produção da operação.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#129514;</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/assets/estilo.css">
+</head>
+<body>
+
+<div id="app"></div>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true"></aside>
+
+<noscript>
+  <div style="padding:40px;text-align:center">
+    O Kaian Lab precisa de JavaScript habilitado.
+  </div>
+</noscript>
+
+<script type="module" src="/assets/app.js"></script>
+
+<!-- Rede de segurança: se o módulo não carregar (CDN bloqueado, erro de sintaxe),
+     a página ficaria em branco. Isto transforma o branco numa mensagem útil. -->
+<script>
+(function(){
+  var avisou = false;
+  function avisar(detalhe){
+    if (avisou) return;
+    var app = document.getElementById("app");
+    if (!app || app.children.length) return;
+    avisou = true;
+    app.innerHTML =
+      '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">' +
+      '<div style="max-width:470px;background:#fff;border:1px solid #D7DCDD;border-radius:12px;padding:30px 32px">' +
+      '<h1 style="font-size:19px;margin:0 0 12px">O app não carregou</h1>' +
+      '<p style="color:#5C686A;margin:0 0 12px;line-height:1.55">' +
+      'O Kaian Lab busca a biblioteca do Supabase na internet. Se você estiver sem conexão, ' +
+      'ou se alguma extensão do navegador estiver bloqueando, ele não sobe.</p>' +
+      (detalhe ? '<p style="color:#5C686A;font-size:12px;font-family:monospace;word-break:break-all">' + detalhe + '</p>' : '') +
+      '<button onclick="location.reload()" style="border:1px solid #0C6E66;background:#0C6E66;color:#fff;' +
+      'border-radius:7px;padding:7px 13px;cursor:pointer;font:inherit">Tentar de novo</button>' +
+      '</div></div>';
+  }
+  window.addEventListener("error", function(ev){
+    if (ev.target && ev.target.tagName === "SCRIPT") avisar("Falha ao carregar " + (ev.target.src || ""));
+  }, true);
+  window.addEventListener("unhandledrejection", function(ev){ avisar(String(ev.reason && ev.reason.message || "")); });
+  setTimeout(function(){ avisar(""); }, 12000);
+})();
+</script>
+</body>
+</html>
