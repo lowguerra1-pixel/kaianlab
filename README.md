@@ -7,41 +7,55 @@ Stack: HTML/CSS/JS puro (sem build) · **Supabase** (Postgres + auth + realtime)
 
 ---
 
-## Ligar (4 passos, ~15 min)
+## Já está no ar
 
-### 1. Criar o projeto no Supabase
+| | |
+|---|---|
+| **App** | https://esteira.kaiandigital.online |
+| **Netlify** | projeto `kaianlab`, deploy automático a cada push na `main` |
+| **Supabase** | projeto `kaian-lab`, org gratuita "Kaian Lab" |
+| **Região** | `sa-east-1` (São Paulo) |
+| **Compute** | Nano — custo zero |
+| **Ref do projeto** | `nnebxmtzzobdcchcqryx` |
 
-Em <https://supabase.com> → **New project**. Guarde a senha do banco que ele pede
-(você não precisa dela no dia a dia, mas não dá pra recuperar depois).
+O schema já foi aplicado e conferido no banco: 4 tabelas, todas com RLS,
+7 políticas, 3 tabelas no realtime, 3 triggers de `atualizado_em`.
 
-### 2. Criar as tabelas
+Autenticação já configurada:
 
-No painel do projeto → **SQL Editor** → **New query** → cole todo o conteúdo de
-[`sql/schema.sql`](sql/schema.sql) → **Run**.
+- **Site URL:** `https://esteira.kaiandigital.online`
+- **Redirect URLs:** `https://esteira.kaiandigital.online/**` e `http://localhost:8899/**`
 
-Isso cria as três tabelas, liga a segurança por linha (RLS), liga o realtime e
-já libera o seu e-mail como `editor`. Pode rodar de novo quando quiser: é idempotente.
+Não há curinga tipo `*.netlify.app` na lista de redirect, de propósito: um
+curinga assim deixaria qualquer site naquele domínio receber o token do link
+mágico de quem estivesse logando.
 
-### 3. Apontar o app pro seu projeto
+### Se precisar refazer do zero
 
-No Supabase → **Project Settings** → **Data API**, copie:
+1. Criar projeto no Supabase (a senha do banco é sua, use *Generate a password*).
+2. Rodar [`sql/schema.sql`](sql/schema.sql) no SQL Editor.
+3. Pôr URL + chave publicável em [`assets/config.js`](assets/config.js).
+4. Configurar Site URL e Redirect URLs em Authentication → URL Configuration.
+5. Conectar o repo no Netlify (sem comando de build; o `netlify.toml` resolve).
 
-- **Project URL**
-- **anon public** (a chave pública)
+---
 
-Cole os dois em [`assets/config.js`](assets/config.js).
+## Login
 
-> A chave `anon` é pública por natureza — ela existe pra ficar no navegador.
-> Quem protege os dados é o RLS, não o sigilo dela.
-> **Nunca** coloque a `service_role` aí: essa ignora o RLS.
+**E-mail e senha.** Sem link por e-mail, sem código, sem espera. Entra uma vez e
+o navegador guarda a sessão.
 
-### 4. Publicar no Netlify
+Os usuários são criados no painel do Supabase, em **Authentication → Users →
+Add user**, com *Auto Confirm User* ligado. Cadastro público está desligado, então
+ninguém cria conta sozinho.
 
-Em <https://netlify.com> → **Add new site** → **Import an existing project** →
-conecte este repositório.
+São duas listas e as duas precisam ter a pessoa:
 
-Não precisa configurar build: o `netlify.toml` já diz que o site é a raiz e que
-não há comando de build. Cada `git push` publica sozinho.
+1. **Authentication → Users** — é quem consegue autenticar (tem e-mail e senha).
+2. **Tabela `membros`** — é quem o RLS deixa enxergar os dados.
+
+Estar só na primeira significa entrar e ver a tela de "Sem acesso". Estar só na
+segunda significa não conseguir entrar.
 
 ---
 

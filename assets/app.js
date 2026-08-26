@@ -3,7 +3,7 @@
 // =====================================================================
 
 import {
-  sb, configurado, sessaoAtual, entrarComEmail, sair, aoMudarAuth, meuPapel,
+  sb, configurado, sessaoAtual, entrar, sair, aoMudarAuth, meuPapel,
   carregarTudo, inserirComId, remover, agendarPatch, descarregar,
   aoMudarGravacao, temPendencia, inscrever
 } from "./dados.js";
@@ -113,12 +113,14 @@ function telaConfig(){
 
 function telaLogin(){
   $app().innerHTML = telaAviso("Entrar", `
-    <p>Você recebe um link de acesso por e-mail. Sem senha pra decorar.</p>
     <form id="formLogin" class="formLogin">
-      <input type="email" id="email" placeholder="seu@email.com" required autocomplete="email">
-      <button class="btn primary" type="submit">Receber link</button>
+      <input type="email" id="email" placeholder="seu@email.com" required autocomplete="username">
+      <input type="password" id="senha" placeholder="sua senha" required autocomplete="current-password">
+      <button class="btn primary" type="submit">Entrar</button>
     </form>
     <p class="passo" id="avisoLogin"></p>`);
+  const e = document.getElementById("email");
+  if (e) e.focus();
 }
 
 function telaSemAcesso(){
@@ -893,8 +895,12 @@ function explicaErro(err){
     return "não consegui falar com o Supabase. Confira a URL em assets/config.js e sua conexão.";
   if(/invalid api key|jwt/i.test(m))
     return "a chave anon em assets/config.js parece inválida.";
+  if(/invalid login credentials/i.test(m))
+    return "E-mail ou senha incorretos.";
+  if(/email not confirmed/i.test(m))
+    return "Esse usuário ainda não foi confirmado no Supabase.";
   if(/rate limit|too many/i.test(m))
-    return "muitas tentativas seguidas. Espere um minuto e tente de novo.";
+    return "Muitas tentativas seguidas. Espere um minuto e tente de novo.";
   return m;
 }
 
@@ -902,16 +908,16 @@ document.addEventListener("submit", async (e) => {
   if(e.target.id !== "formLogin") return;
   e.preventDefault();
   const email = document.getElementById("email").value;
+  const senha = document.getElementById("senha").value;
   const aviso = document.getElementById("avisoLogin");
   const botao = e.target.querySelector("button");
   botao.disabled = true;
-  aviso.textContent = "Enviando…";
+  aviso.textContent = "Entrando…";
   try {
-    await entrarComEmail(email);
-    aviso.innerHTML = `Link enviado pra <b>${h(email)}</b>. Abra o e-mail e clique — pode cair no spam.`;
+    await entrar(email, senha);
+    // o listener de auth recarrega a pagina sozinho
   } catch(err){
-    aviso.textContent = "Não consegui enviar: " + explicaErro(err);
-  } finally {
+    aviso.textContent = explicaErro(err);
     botao.disabled = false;
   }
 });

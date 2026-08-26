@@ -82,10 +82,10 @@ export async function sessaoAtual(){
   return data.session ?? null;
 }
 
-export async function entrarComEmail(email){
-  const { error } = await sb.auth.signInWithOtp({
+export async function entrar(email, senha){
+  const { error } = await sb.auth.signInWithPassword({
     email: email.trim().toLowerCase(),
-    options: { emailRedirectTo: window.location.origin }
+    password: senha
   });
   if (error) throw error;
 }
