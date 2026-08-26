@@ -8,6 +8,13 @@
   --bad:#BB4239; --bad-soft:#F7E0DD;
   --info:#37669E; --info-soft:#DFE8F3;
   --idle:#74807F; --idle-soft:#E4E8E8;
+  --faixa-build:rgba(55,102,158,.075);
+  --faixa-teste:rgba(174,115,21,.085);
+  --faixa-res:rgba(12,110,102,.07);
+  --gh-build:rgba(55,102,158,.16);
+  --gh-teste:rgba(174,115,21,.17);
+  --gh-res:rgba(12,110,102,.15);
+  --faixa-linha:#C4CDCE;
   --shadow:0 1px 2px rgba(20,30,30,.06),0 8px 24px rgba(20,30,30,.08);
   --r:7px;
 }
@@ -22,6 +29,13 @@
   --bad:#D4655A; --bad-soft:#331A17;
   --info:#5C93D6; --info-soft:#14243A;
   --idle:#8A9695; --idle-soft:#232B2B;
+  --faixa-build:rgba(92,147,214,.12);
+  --faixa-teste:rgba(209,154,50,.12);
+  --faixa-res:rgba(47,167,155,.11);
+  --gh-build:rgba(92,147,214,.26);
+  --gh-teste:rgba(209,154,50,.26);
+  --gh-res:rgba(47,167,155,.24);
+  --faixa-linha:#3E4A49;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 32px rgba(0,0,0,.45);
   }
 }
@@ -35,6 +49,13 @@
   --bad:#D4655A; --bad-soft:#331A17;
   --info:#5C93D6; --info-soft:#14243A;
   --idle:#8A9695; --idle-soft:#232B2B;
+  --faixa-build:rgba(92,147,214,.12);
+  --faixa-teste:rgba(209,154,50,.12);
+  --faixa-res:rgba(47,167,155,.11);
+  --gh-build:rgba(92,147,214,.26);
+  --gh-teste:rgba(209,154,50,.26);
+  --gh-res:rgba(47,167,155,.24);
+  --faixa-linha:#3E4A49;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 32px rgba(0,0,0,.45);
 }
 
@@ -368,3 +389,76 @@ legend{
   .oa-kpis{margin-left:0}
   .ocards{grid-template-columns:1fr}
 }
+
+/* ================= tabela agrupada (Fase 1) ================= */
+.twrap.grupado table{min-width:1560px}
+
+/* faixa de cor por bloco de colunas — dá identidade sem poluir */
+.g-build{background:var(--faixa-build)}
+.g-teste{background:var(--faixa-teste)}
+.g-res{background:var(--faixa-res)}
+
+/* cabeçalho de grupo */
+thead tr.grupos th{
+  position:sticky; top:0; z-index:24;
+  font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+  padding:7px 10px; white-space:nowrap; text-align:left;
+  border-bottom:2px solid var(--faixa-linha); background:var(--surface2);
+}
+thead tr.grupos th.gh-build{background:var(--gh-build); color:var(--info); border-bottom-color:var(--info)}
+thead tr.grupos th.gh-teste{background:var(--gh-teste); color:var(--warn); border-bottom-color:var(--warn)}
+thead tr.grupos th.gh-res{background:var(--gh-res); color:var(--accent); border-bottom-color:var(--accent)}
+thead tr.grupos th.gh-id,
+thead tr.grupos th.gh-dec{color:var(--faint)}
+.twrap.grupado thead tr:not(.grupos) th{top:30px}
+
+/* separadores entre blocos */
+.g-build:first-of-type, th.g-build:first-of-type{border-left:1px solid var(--faixa-linha)}
+.g-teste, th.g-teste{border-left:0}
+tbody td.g-teste:first-of-type, thead th.g-teste:first-of-type{border-left:1px solid var(--faixa-linha)}
+tbody td.g-res:first-of-type, thead th.g-res:first-of-type{border-left:1px solid var(--faixa-linha)}
+tbody td.g-dec, thead th.g-dec{border-left:1px solid var(--faixa-linha)}
+
+/* coluna de ID travada — nunca se perde de vista no scroll lateral */
+td.trava, th.trava{
+  position:sticky; left:0; z-index:18; background:var(--surface);
+  border-right:1px solid var(--faixa-linha);
+}
+th.trava{z-index:26; background:var(--surface2)}
+thead tr.grupos th.gh-id{position:sticky; left:0; z-index:27}
+tbody tr:nth-child(even) td.trava{background:var(--surface2)}
+tbody tr:hover td.trava{background:var(--surface3)}
+
+/* zebra discreta pra acompanhar a linha até o fim */
+tbody tr:nth-child(even) td{background-color:var(--surface2)}
+tbody tr:nth-child(even) td.g-build{background:linear-gradient(var(--faixa-build),var(--faixa-build)),var(--surface2)}
+tbody tr:nth-child(even) td.g-teste{background:linear-gradient(var(--faixa-teste),var(--faixa-teste)),var(--surface2)}
+tbody tr:nth-child(even) td.g-res{background:linear-gradient(var(--faixa-res),var(--faixa-res)),var(--surface2)}
+tbody tr:hover td{background-color:var(--surface3)}
+
+/* ================= selects com cara de editável ================= */
+select.pillsel{
+  border-width:1px; font-weight:600; padding:3px 21px 3px 9px; font-size:11px;
+  min-width:104px; letter-spacing:.01em;
+}
+select.pillsel:hover{filter:brightness(.97)}
+select.pillsel.p-idle{border-color:var(--border2)}
+select.pillsel.p-info{border-color:var(--info)}
+select.pillsel.p-warn{border-color:var(--warn)}
+select.pillsel.p-ok{border-color:var(--ok)}
+select.pillsel.p-bad{border-color:var(--bad)}
+
+/* pílulas um pouco mais presentes */
+.pill{padding:2px 9px; font-size:11px; font-weight:700; letter-spacing:.015em}
+.p-idle{border-color:var(--border2)}
+.p-info{border-color:var(--info-soft)}
+.p-warn{border-color:var(--warn-soft)}
+.p-ok{border-color:var(--ok-soft)}
+.p-bad{border-color:var(--bad-soft)}
+
+/* números com sinal ganham cor */
+td.n.pos{color:var(--ok); font-weight:600}
+td.n.neg{color:var(--bad); font-weight:600}
+
+.dica{font-size:11.5px; color:var(--faint); white-space:nowrap}
+@media(max-width:900px){ .dica{display:none} }

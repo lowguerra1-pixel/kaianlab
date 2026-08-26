@@ -256,7 +256,7 @@ const emptyState = (t,s,act,btn) =>
 // ---------------------------------------------------------------------
 function viewOfertas(){
   const f1 = state.ofertas.filter(o => Number(o.fase||1) === 1).length;
-  const f2 = state.ofertas.filter(o => Number(o.fase||1) === 2).length;
+  const f2 = ofertasFase2().length;
   let inv = 0, fat = 0;
   state.ofertas.forEach(o => { inv += Number(o.investido)||0; fat += Number(o.faturamento)||0; });
   const luc = fat - inv, rg = inv > 0 ? fat/inv : null;
@@ -268,38 +268,55 @@ function viewOfertas(){
 
   const q = filters.ofertas.toLowerCase();
   const rows = state.ofertas.filter(o =>
-    !q || `${o.id} ${o.nome} ${o.responsavel}`.toLowerCase().includes(q));
+    !q || `${o.id} ${o.nome} ${o.responsavel}`.toLowerCase().includes(q))
+    .sort((a,b) => Number(a.fase||1) - Number(b.fase||1) || String(a.id).localeCompare(String(b.id)));
 
   const tb = rows.map(o => {
     const l = lucro(o), r = roas(o);
-    const squares = BUILD_STEPS.map(s => {
-      const st = (o.build && o.build[s[0]]) || "A FAZER";
-      const cl = st==="N/A" ? "s-na" : (st==="A FAZER" ? "" : "s-"+tone(st));
-      return `<span class="bsq ${cl}" title="${h(s[1]+": "+st)}"></span>`;
-    }).join("");
-    return `<tr data-open="oferta" data-id="${h(o.id)}">
-      <td class="id">${h(o.id)}</td>
-      <td class="name">${h(o.nome||"—")}</td>
+    const leitura = addDays(o.dataInicio, 5);
+    const podeLer = leitura && diffDias(leitura, hojeIso()) >= 0 && o.veredito === "EM TESTE";
+    const celulasBuild = BUILD_STEPS.map(sp =>
+      `<td class="g-build">${pillsel((o.build && o.build[sp[0]]) || "A FAZER", ST_BUILD, "build."+sp[0], o.id)}</td>`
+    ).join("");
+    return `<tr>
+      <td class="id trava" data-open="oferta" data-id="${h(o.id)}" title="Abrir a ficha">${h(o.id)}</td>
+      <td class="name" data-open="oferta" data-id="${h(o.id)}" style="cursor:pointer">${h(o.nome||"—")}</td>
       <td class="txt">${h(o.responsavel||"—")}</td>
-      <td><span class="buildbar">${squares}</span></td>
-      <td class="n">${br(o.dataInicio)}</td>
-      <td class="n">${br(addDays(o.dataInicio,5))}</td>
-      <td class="n">${br(o.dataFinal)}</td>
-      <td class="n">${money(o.investido)}</td>
-      <td class="n ${l>0?"pos":(l<0?"neg":"")}">${l==null?"—":money(l)}</td>
-      <td class="n">${r==null?"—":num(r)}</td>
-      <td>${pill(o.veredito||"EM TESTE")}</td></tr>`;
+      ${celulasBuild}
+      <td class="n g-teste">${br(o.dataInicio)}</td>
+      <td class="n g-teste">${br(leitura)}${podeLer?' <span class="pill p-warn">ler</span>':""}</td>
+      <td class="n g-teste">${br(o.dataFinal)}</td>
+      <td class="n g-res">${money(o.investido)}</td>
+      <td class="n g-res">${money(o.faturamento)}</td>
+      <td class="n g-res ${l>0?"pos":(l<0?"neg":"")}">${l==null?"—":money(l)}</td>
+      <td class="n g-res ${r!=null?(r>=1?"pos":"neg"):""}">${r==null?"—":num(r)}</td>
+      <td class="n g-res">${o.takeRateOB!==""&&o.takeRateOB!=null?num(o.takeRateOB,0)+"%":"—"}</td>
+      <td class="g-dec">${pillsel(o.veredito||"EM TESTE", ST_VER_O, "oferta.veredito", o.id)}</td>
+    </tr>`;
   }).join("");
 
+  const grupos = `<tr class="grupos">
+      <th colspan="3" class="gh gh-id">Identificação</th>
+      <th colspan="6" class="gh gh-build">Build — o que já está pronto</th>
+      <th colspan="3" class="gh gh-teste">Janela de teste</th>
+      <th colspan="5" class="gh gh-res">Resultado</th>
+      <th colspan="1" class="gh gh-dec">Decisão</th>
+    </tr>`;
+  const colunas = `<tr>` +
+    `<th class="trava">ID</th><th>Oferta</th><th>Resp.</th>` +
+    BUILD_STEPS.map(sp => `<th class="g-build">${h(sp[1])}</th>`).join("") +
+    `<th class="g-teste">Início</th><th class="g-teste">Leitura</th><th class="g-teste">Fim</th>` +
+    `<th class="g-res">Investido</th><th class="g-res">Faturado</th><th class="g-res">Lucro</th>` +
+    `<th class="g-res">ROAS</th><th class="g-res">OB</th>` +
+    `<th class="g-dec">Veredito</th></tr>`;
+
   const table = rows.length
-    ? `<div class="twrap with-kpis"><table><thead><tr>` +
-      ["ID","Oferta","Resp.","Build","Início","Leitura","Fim","Investido","Lucro","ROAS","Veredito"]
-        .map(t => `<th>${t}</th>`).join("") +
-      `</tr></thead><tbody>${tb}</tbody></table></div>`
+    ? `<div class="twrap with-kpis grupado"><table><thead>${grupos}${colunas}</thead><tbody>${tb}</tbody></table></div>`
     : emptyState("Nenhuma oferta ainda.","Cadastre a primeira oferta em modelagem.","new-oferta","Nova oferta");
 
   return `<div class="kpis">${kpis}</div>
     <div class="toolbar"><h2>Fase 1 — Validação &amp; Modelagem</h2><div class="sp"></div>
+      <span class="dica">arraste a tabela pro lado →</span>
       <input class="search" data-filter="ofertas" placeholder="Buscar oferta…" value="${h(filters.ofertas)}">
       <button class="btn" data-act="csv-ofertas">CSV</button>
       ${podeEditar?`<button class="btn primary" data-act="new-oferta">+ Nova oferta</button>`:""}
@@ -957,6 +974,28 @@ document.addEventListener("change", (e) => {
 
   if(t.hasAttribute?.("data-inline")){
     const kind = t.getAttribute("data-inline"), id = t.getAttribute("data-id"), v = t.value;
+    if(kind.startsWith("build.")){
+      const passo = kind.split(".")[1];
+      const o = byId(state.ofertas, id);
+      if(o){
+        o.build = { ...(o.build||{}), [passo]: v };
+        agendarPatch("ofertas", id, { build: o.build });
+      }
+      t.className = "pillsel p-" + tone(v);
+      return;
+    }
+    if(kind === "oferta.veredito"){
+      const o = byId(state.ofertas, id);
+      if(o){
+        o.veredito = v;
+        const patch = { veredito: v };
+        // aprovar move a oferta pra Fase 2 sozinho
+        if(v === "APROVADO → FASE 2" && Number(o.fase||1) !== 2){ o.fase = 2; patch.fase = 2; }
+        agendarPatch("ofertas", id, patch);
+      }
+      render();
+      return;
+    }
     if(kind.startsWith("leva.")){
       const campo = kind.split(".")[1];
       const l = byId(state.levas,id); if(l) l[campo] = v;
