@@ -79,8 +79,9 @@ Tirar o acesso:
 delete from membros where email = 'fulano@gmail.com';
 ```
 
-O login é por **link mágico**: a pessoa digita o e-mail, recebe um link, clica e
-entra. Sem senha pra gerenciar.
+Lembre que a linha em `membros` sozinha não basta: a pessoa também precisa
+existir em **Authentication → Users**, com senha e *Auto Confirm User* ligado.
+Uma lista diz quem consegue entrar; a outra diz quem enxerga os dados.
 
 ---
 
