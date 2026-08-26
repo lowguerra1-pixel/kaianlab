@@ -11,8 +11,9 @@
 // NUNCA coloque aqui a chave "service_role": essa ignora o RLS.
 // =====================================================================
 
-export const SUPABASE_URL = "COLE_AQUI_A_URL";
-export const SUPABASE_ANON_KEY = "COLE_AQUI_A_CHAVE_ANON";
+export const SUPABASE_URL = "https://nnebxmtzzobdcchcqryx.supabase.co";
+export const SUPABASE_ANON_KEY = "sb_publishable_peUlsY5yFnCZaCajhnIIIg_E1b8p1hu";
 
 export const configurado =
+  SUPABASE_URL.startsWith("https://") && SUPABASE_ANON_KEY.length > 20 &&
   !SUPABASE_URL.startsWith("COLE_AQUI") && !SUPABASE_ANON_KEY.startsWith("COLE_AQUI");
